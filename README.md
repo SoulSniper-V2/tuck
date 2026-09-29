@@ -23,34 +23,42 @@ Normal minimizing, Overview, and Alt-Tab keep working. Restoring a parked window
 
 Thumbnails use compositor clones while the popup is open. Minimized applications may pause drawing. Tuck does not promise continuously updating video previews.
 
-## Install on GNOME 51
+## Install
 
-Download the ZIP from the [v0.1.0 prerelease](https://github.com/SoulSniper-V2/tuck/releases/tag/v0.1.0). This is an early version; feedback and issue reports are welcome.
+Download the matching ZIP from the [v0.2.0 prerelease](https://github.com/SoulSniper-V2/tuck/releases/tag/v0.2.0).
 
-The initial supported version is **GNOME Shell 51**. Do not edit the version list to bypass compatibility checking.
+| GNOME Shell | Package |
+| --- | --- |
+| 45, 46, 47, 48, 49, 50, 51 | `tuck-v0.2.0.shell-extension.zip` |
+| 3.32, 3.34, 3.36, 3.38, 40, 41, 42, 43, 44 | `tuck-v0.2.0-legacy.shell-extension.zip` |
 
-Install the packaged ZIP on the GNOME machine:
+Both packages use **tuck@tuck-extension** and preserve the same settings. The modern package uses ECMAScript modules; the legacy package uses GNOME's older loader. Use the matching package when upgrading across GNOME 44 → 45. GNOME 3.30 and earlier are unsupported.
+
+Check your version with `gnome-shell --version`. On GNOME 3.34 or later:
 
 ```sh
-gnome-extensions install --force tuck-v0.1.0.shell-extension.zip
+# Substitute the legacy ZIP on GNOME 3.34–44.
+gnome-extensions install --force tuck-v0.2.0.shell-extension.zip
 ```
 
-Log out and back in so Shell discovers the newly installed extension, then:
+Log out and back in so Shell discovers the installed extension, then:
 
 ```sh
 gnome-extensions enable tuck@tuck-extension
 gnome-extensions prefs tuck@tuck-extension
 ```
 
-If you installed an earlier build of this prerelease, disable and uninstall that copy in GNOME Extensions first: the extension ID has changed.
+GNOME 3.32 predates that CLI. Extract the legacy ZIP into `~/.local/share/gnome-shell/extensions/tuck@tuck-extension`, log out and back in, then enable Tuck through GNOME Tweaks or `gnome-shell-extension-tool --enable tuck@tuck-extension`. Open its preferences through GNOME's extension preferences tool or Tuck's gear button.
 
-You can also enable it through GNOME Extensions or Extension Manager. If a default shortcut is already in use, change it in Tuck's preferences. Preferences detect collisions between Tuck's own actions; they cannot comprehensively detect shortcuts registered by other extensions.
+If you installed the first early build with a different extension ID, disable and uninstall that copy first. Updates from the renamed v0.1.0 package keep the current ID.
+
+You can also enable Tuck through GNOME Extensions or Extension Manager on supported versions. If a default shortcut is already in use, change it in preferences. Tuck detects collisions between its own actions; it cannot comprehensively detect other extensions' shortcuts.
 
 ## Build and check
 
-Runtime: GJS, GNOME Shell 51, GTK 4, and libadwaita. No npm packages, companion application, subprocesses, network requests, prototype patches, or background polling run in the installed extension.
+Runtime: GJS and GNOME Shell. Preferences use GTK 3 on GNOME 3.32–3.38, GTK 4 on GNOME 40–44, and GTK 4/libadwaita on GNOME 45–51. There are no runtime npm packages, companion services, network requests, prototype patches, or background polling.
 
-Developer tooling: Node 24 or later, Python 3, and `glib-compile-schemas` for packaging.
+Developer tooling: Node 24 or later, Python 3.8 or later, and `glib-compile-schemas` for packaging.
 
 ```sh
 npm ci
@@ -58,16 +66,16 @@ npm run check
 npm run pack
 ```
 
-The package is written to `dist/tuck-v0.1.0.shell-extension.zip`. Its explicit file list excludes tests, documentation, npm dependencies, and development configuration.
+Both packages are written to `dist/`. Their explicit file lists exclude tests, documentation, npm dependencies, and development configuration.
 
-For native tests in an isolated GNOME 51 session, see [verification](docs/verification.md). Unit checks alone do not prove Shell integration. Hosted lint, unit, schema, and package checks are available in [GitHub Actions](https://github.com/SoulSniper-V2/tuck/actions). Native GNOME tests are recorded separately.
+For the native compatibility matrix and reproducible isolated-session tests, see [verification](docs/verification.md). Unit checks alone do not prove Shell integration. Hosted lint, unit, schema, and package checks are available in [GitHub Actions](https://github.com/SoulSniper-V2/tuck/actions). Native GNOME tests are recorded separately.
 
 ## Limitations
 
 - Parking is session-only. It does not survive logout or Shell restart.
 - Only normal, minimizable application windows are eligible; dialogs and transient windows are excluded.
 - Restore uses the window's current workspace, including changes made after parking.
-- Other Shell versions, extension combinations, screen readers, and physical multi-monitor configurations require additional testing.
+- Physical multi-monitor/GPU configurations, screen readers, touch input, extended application usage, and extension combinations require additional testing.
 - This prerelease has not been submitted to extensions.gnome.org.
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).

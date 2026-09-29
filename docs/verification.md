@@ -1,82 +1,107 @@
 # Verification record
 
-29 September 2026. This records checks performed, rather than treating the supplied CI configuration as a successful hosted run.
+29 September 2026. Tuck v0.2.0 was tested on sixteen GNOME Shell generations, from 3.32 through 51. This record separates native behavior checks from static checks and hosted CI.
 
-## Local checks — PROVEN
+## Local checks
 
-`npm run check` passed: ESLint, nine behavioral unit tests, metadata and process-boundary checks, and Node syntax checks for six runtime modules. The unit tests cover eligibility, ownership, duplicate parking, Unicode matching, thumbnail geometry, workspace preservation, sticky windows, external restoration, closure, failed minimize/move/restore, and cleanup after one restoration fails.
+`npm run check` passes ESLint, eleven behavioral unit tests, metadata and process-boundary checks, syntax checks for ten runtime modules, and checks of every generated classic module. Tests cover window eligibility and ownership, search, Unicode fallback on older JavaScript engines, thumbnail geometry, workspace preservation, sticky windows, external restoration, closure, failed minimize/move/restore, and cleanup when one window fails to restore.
 
-Dependencies are development-only. Installation audited 78 packages with no reported vulnerabilities at that time; this is a point-in-time npm result, not a security guarantee.
+Both packages build with Python 3.8 or later and strict GSettings schema compilation. Python 3.8.6 was also tested directly. npm dependencies are development-only; neither archive contains npm packages.
 
-## Native runtime — PROVEN within this environment
+## Native compatibility matrix
 
-The packaged ZIP was installed with the upstream `gnome-shell-test-tool`, which invokes `gnome-extensions install`. An actual GNOME Shell compositor ran a virtual 1280×720 Wayland display with software rendering. It was not a UI mock or Node emulation.
+Each row ran an actual GNOME Shell/Mutter compositor from official Fedora packages in a disposable filesystem. The matching release ZIP was extracted into the test user's extension directory. No GNOME packages were installed into the host OS. Each compositor ran as an unprivileged user in private mount/PID namespaces with software rendering at 1280×720. GNOME 3.x used a dedicated Xvfb display; GNOME 40 and later used headless Wayland.
 
-The test environment was an isolated Fedora 45 filesystem on the connected Linux host. Its package versions were:
+| GNOME Shell | Fedora | Package | Native suite |
+| --- | --- | --- | --- |
+| 3.32.2 | 30 | Legacy | Passed, exit 0 |
+| 3.34.5 | 31 | Legacy | Passed, exit 0 |
+| 3.36.9 | 32 | Legacy | Passed, exit 0 |
+| 3.38.5 | 33 | Legacy | Passed, exit 0 |
+| 40.9 | 34 | Legacy | Passed, exit 0 |
+| 41.9 | 35 | Legacy | Passed, exit 0 |
+| 42.9 | 36 | Legacy | Passed, exit 0 |
+| 43.9 | 37 | Legacy | Passed, exit 0 |
+| 44.10 | 38 | Legacy | Passed, exit 0 |
+| 45.10 | 39 | Modern | Passed, exit 0 |
+| 46.10 | 40 | Modern | Passed, exit 0 |
+| 47.10 | 41 | Modern | Passed, exit 0 |
+| 48.8 | 42 | Modern | Passed, exit 0 |
+| 49.10 | 43 | Modern | Passed, exit 0 |
+| 50.5 | 44 | Modern | Passed, exit 0 |
+| 51.0 | 45 | Modern | Passed, exit 0 |
 
-| Component | Version |
-| --- | --- |
-| GNOME Shell | 51.0-1.fc45 |
-| Mutter | 51.0-1.fc45 |
-| GJS | 1.90.0-1.fc45 |
-| GTK | 4.24.0-1.fc45 |
-| libadwaita | 1.10.0-2.fc45 |
-| GLib | 2.89.4-1.fc45 |
+[Machine-readable results](compatibility-results.json) record exact package versions, archive hashes, assertion coverage, counts, and exit status. Each generation passed the following flows:
 
-The official Fedora OCI layer was SHA-256 `71546fe274272d445223ed6fed4ddc9f1664c49a31485957bf625b2d88ecc31b`. No GNOME packages were installed into the host OS. The compositor ran as an unprivileged user inside a private mount/PID namespace.
+- Load the packaged extension and open an empty shelf.
+- Map nine real application windows; park and open the shelf with actual Mutter keyboard input.
+- Allocate compositor thumbnails, navigate into and through all nine entries, and scroll the last focused row into view.
+- Type search text, show no results, switch to icons, restore with Enter, and release thumbnail actors when the popup closes.
+- Restore externally, retain a window's workspace, move a window with Bring here, and restore all owned windows.
+- Load native preferences, change the preview setting, reject conflicting and unmodified shortcuts, save Ctrl/Super and Alt-only shortcuts, cancel, clear, and reset.
+- Disable and re-enable, reveal owned windows, preserve ordinary minimize, remove the indicator, and start with an empty store.
 
-[Native results](native-results.txt) record the passing assertions. The suite exercised:
+Preferences used GTK 3 on 3.32–3.38, GTK 4 on 40–44, and GTK 4/libadwaita on 45–51. GNOME 45's libadwaita 1.4 `MessageDialog` fallback was exercised, as were newer `AlertDialog` versions. Each preferences process must exit successfully and write a unique per-run result file; an old marker cannot make a run pass.
 
-- Actual Mutter keyboard input for park, open shelf, Escape, Down, Enter, and typed search.
-- Real Meta.Window minimize/unminimize and workspace changes, existing-workspace restoration, and Bring here.
-- Empty and no-result views, icon mode, compositor thumbnails, and immediate clone destruction when the popup closes.
-- Focus clearing on an empty workspace and keyboard focus preservation after a title-property notification on a real window.
-- Nine real GTK document windows, Tab navigation through all nine rows with automatic scrolling, an actual Unicode long title, its complete accessible name, and closure of a parked window.
-- Native GTK/libadwaita preferences loaded through GNOME's ExtensionPrefsDialog. Switch binding and shortcut-capture callbacks were exercised through native controller signals: normalized keys, equivalent modifier ordering, duplicate rejection, invalid unmodified typing, Escape, Backspace, and reset.
-- Light Shell appearance with text scaling set to 1.25; dark appearance at the default scale.
-- Disable/re-enable, panel removal, revealing owned windows, and leaving ordinarily minimized windows alone.
+The GTK 3 shortcut checks send native GDK test key events. Their fixture opts into core device events so GDK receives those events under Xvfb. GTK 4 shortcut checks emit signals on the actual native key controller: they prove capture callbacks and settings behavior, but do not prove physical GTK keyboard delivery. Shelf keyboard tests separately use actual Mutter input on every generation.
 
-[Shell](screenshots/shelf.png), [scrolling](screenshots/many-windows.png), [Unicode search](screenshots/search-long-title.png), [light appearance](screenshots/light-large-text.png), and [preferences](screenshots/preferences.png) screenshots were inspected. Test-window content is explicitly fixture content, not customer or adoption proof.
+## Additional GNOME 51 checks
 
-The environment lacked login/GDM, PolicyKit, and other full-session services, which produced system warnings. Early PRoot attempts stalled timers; the final checks used a real chroot in private namespaces. Some isolated starts stalled before Shell emitted startup-complete, including a run with a PNG background. The successful run used a trusted two-pixel PNG fixture, but that does not prove the cause of the intermittent startup stalls. The successful final run exited normally and contained no Tuck JavaScript errors. This does not establish the cause of every environment warning.
+The full suite also passed against GNOME Shell/Mutter 51.0, GJS 1.90.0, GTK 4.24.0, and libadwaita 1.10.0. [Native results](native-results.txt) record its assertions. It covers a Unicode long title and accessible name, closure of a parked document, focus after a title notification, and light appearance at text scale 1.25.
 
-Glycin's image sandbox was disabled only for the isolated trusted-fixture run because that environment could not provide its usual sandbox. This setting is absent from the extension and is not an installation requirement.
+[Shell](screenshots/shelf.png), [scrolling](screenshots/many-windows.png), [Unicode search](screenshots/search-long-title.png), [light appearance](screenshots/light-large-text.png), and [preferences](screenshots/preferences.png) screenshots were refreshed from this run and inspected. Window content is test-fixture content.
 
-## Reproduce the native fixture
+## Reproduce the compatibility suite
 
-The fixture currently assumes Fedora's GNOME 51 resource paths and `/tmp/tuck` as its working source directory. Use a separate disposable desktop/session, not an everyday session: it creates test windows, changes appearance settings, and toggles the extension. Install the normal GNOME 51 runtime plus Python GObject bindings. Copy this checkout to `/tmp/tuck`, build the package there, and run:
+Use a disposable desktop/session: these fixtures create windows, change settings, and toggle the extension. They assume Fedora's resource paths, `/usr/bin/gjs`, `/tmp/tuck` as the source directory, and a fresh home/settings backend. Install the matching GNOME runtime, GLib tooling, and Python GObject bindings. Copy this checkout to `/tmp/tuck`, build, and extract the matching ZIP into `$XDG_DATA_HOME/gnome-shell/extensions/tuck@tuck-extension` (or `~/.local/share/gnome-shell/extensions/tuck@tuck-extension`).
+
+Before starting the compositor in that disposable session:
 
 ```sh
 cd /tmp/tuck
 npm run pack
 cp tests/wallpaper.png background.png
-rm -f preferences-ready
-TUCK_SCREENSHOT_DIR=/tmp/tuck/screenshots \
-SHELL_BACKGROUND_IMAGE=/tmp/tuck/background.png \
-dbus-run-session -- gnome-shell-test-tool \
-  --headless --disable-animations \
-  --extra-filter org.example.TuckPreferencesTest \
-  --extra-filter org.example.TuckWindowTest \
-  --extension dist/tuck-v0.1.0.shell-extension.zip \
-  /tmp/tuck/tests/native.js
+export GSETTINGS_BACKEND=keyfile
+export SHELL_BACKGROUND_IMAGE=/tmp/tuck/background.png
+export LIBGL_ALWAYS_SOFTWARE=1
+export GJS_PATH=/tmp/tuck/tests
+export WAYLAND_DISPLAY=tuck-test
+# Execute these and Shell inside the same dbus-run-session.
+gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us')]"
+gsettings set org.gnome.shell enabled-extensions "['tuck@tuck-extension']"
+gsettings set org.gnome.shell disable-user-extensions false
+gsettings set org.gnome.desktop.interface enable-animations false
 ```
 
-A normal fully provisioned GNOME environment should retain its normal image sandbox. The private-filesystem setup used here is not required to install Tuck.
+For GNOME 45–51:
 
-## Native-tested package — PROVEN
-
-Strict GSettings compilation succeeded. The ZIP's integrity and explicit allowlist were checked, and every packaged source file was compared with the delivered source. Runtime files only: six JavaScript modules, stylesheet, metadata, source and compiled settings schema, and license.
-
-The archive tested above predates the public metadata URL, project-only extension ID, and friendly archive name. Its behavior implementation is unchanged. The updated identity and packaging are checked in GitHub Actions; the native suite was recorded with the earlier identity. The prerelease ZIP has its own attached checksum.
-
-Native-tested ZIP SHA-256:
-
-```text
-b882c950d9bf1ec7e2c7601509c9ee0605cb2fca77aac3c3331b9d8f79e520b0
+```sh
+gnome-shell --wayland --headless --virtual-monitor 1280x720 \
+  --wayland-display tuck-test --no-x11 \
+  --automation-script /tmp/tuck/tests/compatibility.js
 ```
 
-## Limits and external state
+For GNOME 40–44, substitute the installed Shell version in the preparation command:
 
-GNOME versions other than 51, physical displays/GPU configurations, screen readers, touch input, translated layouts, extended real-application usage, and combinations with other extensions remain untested. Accessible names and keyboard behavior were checked; that is not a complete accessibility certification.
+```sh
+python3 scripts/prepare-native.py --shell-version 42
+SHELL_PERF_MODULE=compat gnome-shell --wayland --headless \
+  --virtual-monitor 1280x720 --wayland-display tuck-test --no-x11
+```
 
-The public [repository](https://github.com/SoulSniper-V2/tuck) includes an issue tracker and a pinned [GitHub Actions workflow](https://github.com/SoulSniper-V2/tuck/actions) for lint, unit, schema, and packaging checks. Hosted results do not replace the native runtime evidence above. The early release targets GNOME 51 only. Submission to extensions.gnome.org and catalog review remain separate, unperformed actions.
+For GNOME 3.32–3.38, prepare the matching classic fixture, unset `WAYLAND_DISPLAY`, and run `SHELL_PERF_MODULE=compat gnome-shell --x11` on a separate Xvfb display. Start `/usr/libexec/gnome-shell-perf-helper` in the same D-Bus session first. The preparation script handles the older generator-based performance harness and extracts the installed preferences host's resources.
+
+An isolated GNOME 51 launch stalled before the suite started; a fresh launch completed every assertion and exited normally. The isolated matrix lacked login/GDM, PolicyKit, and other full-session services, which produced warnings. Trusted fixture image loading used a disabled Glycin sandbox where the disposable environment could not provide one. That override is absent from Tuck and is not an installation requirement. A normal desktop should retain its normal image sandbox.
+
+## Package integrity and limits
+
+The archives contain only ten JavaScript modules, metadata, stylesheet, source and compiled settings schema, and license. ZIP integrity, the explicit allowlist, and packaged source bytes were checked. The same project UUID, `tuck@tuck-extension`, is used by both packages.
+
+| Release archive | Native-tested SHA-256 |
+| --- | --- |
+| `tuck-v0.2.0.shell-extension.zip` | `c8f113bd4b5fa517e9e1e9c72531f6d43f3a744c0697e4f395f4eb9d4b598f47` |
+| `tuck-v0.2.0-legacy.shell-extension.zip` | `d65d59c716f65791a37f353ba3ce9b34da6909c046bfdac51216093cac91b7f5` |
+
+GNOME 3.30 and earlier use an older panel contract that this implementation does not support. Physical GPU/multi-monitor configurations, screen readers, touch input, translated keyboard layouts, extended real-application usage, and combinations with other extensions remain untested. Passing these fixtures is not a complete accessibility certification or a guarantee for every distribution patch.
+
+[GitHub Actions](https://github.com/SoulSniper-V2/tuck/actions) checks lint, unit behavior, schemas, and both packages. Hosted checks are separate from the native results above. Submission to extensions.gnome.org and catalog review remain unperformed.

@@ -1,54 +1,54 @@
-GNOME Shell-Message: 22:14:31.405: TUCK PASS: packaged extension enabled in GNOME Shell
-GNOME Shell-Message: 22:14:31.916: TUCK PASS: empty shelf opens
-GNOME Shell-Message: 22:14:33.238: TUCK PASS: three real test windows mapped
-GNOME Shell-Message: 22:14:33.723: TUCK PASS: park shortcut works through Mutter keyboard input
-GNOME Shell-Message: 22:14:34.008: TUCK PASS: shelf shortcut opens the popup
-GNOME Shell-Message: 22:14:34.291: TUCK PASS: Escape closes the popup
-GNOME Shell-Message: 22:14:34.293: TUCK PASS: real Meta window parked
-GNOME Shell-Message: 22:14:34.294: TUCK PASS: real Meta window parked
-GNOME Shell-Message: 22:14:34.295: TUCK PASS: real Meta window parked
-GNOME Shell-Message: 22:14:34.295: TUCK PASS: parked windows are minimized
-GNOME Shell-Message: 22:14:34.803: TUCK PASS: shelf shows three entries
-GNOME Shell-Message: 22:14:35.127: TUCK PASS: Down moves from search to the first row
-GNOME Shell-Message: 22:14:35.136: TUCK PASS: title updates preserve keyboard row focus
-GNOME Shell-Message: 22:14:35.419: TUCK PASS: Enter restores the first result and closes the shelf
-GNOME Shell-Message: 22:14:36.473: TUCK PASS: search receives real keyboard typing
-GNOME Shell-Message: 22:14:36.473: TUCK PASS: no-results state
-GNOME Shell-Message: 22:14:36.526: TUCK PASS: icon-only mode retains entries
-GNOME Shell-Message: 22:14:36.564: TUCK PASS: closing popup releases thumbnail actors
-GNOME Shell-Message: 22:14:36.564: TUCK PASS: Alt-Tab-style external restore releases ownership
-GNOME Shell-Message: 22:14:36.868: TUCK PASS: empty workspace clears cached application focus
-GNOME Shell-Message: 22:14:37.177: TUCK PASS: restore retains original workspace
-GNOME Shell-Message: 22:14:37.792: TUCK PASS: Bring here moves a real window to the active workspace
-Gjs-Console-Message: 22:14:38.065: TUCK PREFS PASS: real preferences page loaded
-Gjs-Console-Message: 22:14:38.066: TUCK PREFS PASS: native preview switch exists
-Gjs-Console-Message: 22:14:38.073: TUCK PREFS PASS: preview switch writes settings
-Gjs-Console-Message: 22:14:38.075: TUCK PREFS PASS: preview switch writes both ways
-Gjs-Console-Message: 22:14:38.208: TUCK PREFS PASS: shortcut capture is a native dialog
-Gjs-Console-Message: 22:14:38.348: TUCK PREFS PASS: default accelerator collision ignores modifier ordering
-Gjs-Console-Message: 22:14:38.570: TUCK PREFS PASS: shortcut capture is a native dialog
-Gjs-Console-Message: 22:14:38.683: TUCK PREFS PASS: shortcut capture saves normalized accelerator
-Gjs-Console-Message: 22:14:38.786: TUCK PREFS PASS: shortcut capture is a native dialog
-Gjs-Console-Message: 22:14:38.989: TUCK PREFS PASS: duplicate Tuck shortcut is rejected
-Gjs-Console-Message: 22:14:39.219: TUCK PREFS PASS: shortcut capture is a native dialog
-Gjs-Console-Message: 22:14:39.320: TUCK PREFS PASS: plain typing is rejected as a shortcut
-Gjs-Console-Message: 22:14:39.545: TUCK PREFS PASS: shortcut capture is a native dialog
-Gjs-Console-Message: 22:14:39.646: TUCK PREFS PASS: Escape leaves shortcut unchanged
-Gjs-Console-Message: 22:14:39.755: TUCK PREFS PASS: shortcut capture is a native dialog
-Gjs-Console-Message: 22:14:39.863: TUCK PREFS PASS: Backspace disables shortcut
-Gjs-Console-Message: 22:14:39.874: TUCK PREFS PASS: reset restores default shortcut
-Gjs-Console-Message: 22:14:39.874: TUCK PREFERENCES SUITE PASSED
-GNOME Shell-Message: 22:14:41.688: TUCK PASS: GTK preferences fixture exited successfully
-GNOME Shell-Message: 22:14:42.397: TUCK PASS: nine real GTK document windows mapped
-GNOME Shell-Message: 22:14:42.711: TUCK PASS: many-window shelf scrolls without dropping entries
-GNOME Shell-Message: 22:14:47.510: TUCK PASS: Tab reaches the ninth window
-GNOME Shell-Message: 22:14:47.510: TUCK PASS: keyboard focus scrolls the last row into view
-GNOME Shell-Message: 22:14:47.557: TUCK PASS: real Unicode title matches accent-insensitive search
-GNOME Shell-Message: 22:14:47.557: TUCK PASS: full long title is retained for accessibility
-GNOME Shell-Message: 22:14:47.789: TUCK PASS: closing a parked real window removes its record
-GNOME Shell-Message: 22:14:48.338: TUCK PASS: light appearance and enlarged text retain the shelf
-GNOME Shell-Message: 22:14:48.603: TUCK PASS: disable reveals owned window
-GNOME Shell-Message: 22:14:48.603: TUCK PASS: disable leaves ordinary minimized window alone
-GNOME Shell-Message: 22:14:48.603: TUCK PASS: disable removes panel indicator
-GNOME Shell-Message: 22:14:48.606: TUCK PASS: re-enable starts with a clean store
-GNOME Shell-Message: 22:14:48.622: TUCK NATIVE SUITE PASSED
+TUCK PASS: packaged extension enabled in GNOME Shell
+TUCK PASS: empty shelf opens
+TUCK PASS: three real test windows mapped
+TUCK PASS: park shortcut works through Mutter keyboard input
+TUCK PASS: shelf shortcut opens the popup
+TUCK PASS: Escape closes the popup
+TUCK PASS: real Meta window parked
+TUCK PASS: real Meta window parked
+TUCK PASS: real Meta window parked
+TUCK PASS: parked windows are minimized
+TUCK PASS: shelf shows three entries
+TUCK PASS: Down moves from search to the first row
+TUCK PASS: title updates preserve keyboard row focus
+TUCK PASS: Enter restores the first result and closes the shelf
+TUCK PASS: search receives real keyboard typing
+TUCK PASS: no-results state
+TUCK PASS: icon-only mode retains entries
+TUCK PASS: closing popup releases thumbnail actors
+TUCK PASS: Alt-Tab-style external restore releases ownership
+TUCK PASS: empty workspace clears cached application focus
+TUCK PASS: restore retains original workspace
+TUCK PASS: Bring here moves a real window to the active workspace
+TUCK PREFS PASS: real preferences page loaded
+TUCK PREFS PASS: native preview switch exists
+TUCK PREFS PASS: preview switch writes settings
+TUCK PREFS PASS: preview switch writes both ways
+TUCK PREFS PASS: shortcut capture is a native dialog
+TUCK PREFS PASS: default accelerator collision ignores modifier ordering
+TUCK PREFS PASS: shortcut capture is a native dialog
+TUCK PREFS PASS: shortcut capture saves normalized accelerator
+TUCK PREFS PASS: shortcut capture is a native dialog
+TUCK PREFS PASS: duplicate Tuck shortcut is rejected
+TUCK PREFS PASS: shortcut capture is a native dialog
+TUCK PREFS PASS: plain typing is rejected as a shortcut
+TUCK PREFS PASS: shortcut capture is a native dialog
+TUCK PREFS PASS: Escape leaves shortcut unchanged
+TUCK PREFS PASS: shortcut capture is a native dialog
+TUCK PREFS PASS: Backspace disables shortcut
+TUCK PREFS PASS: reset restores default shortcut
+TUCK PREFERENCES SUITE PASSED
+TUCK PASS: GTK preferences fixture exited successfully
+TUCK PASS: nine real GTK document windows mapped
+TUCK PASS: many-window shelf scrolls without dropping entries
+TUCK PASS: Tab reaches the ninth window
+TUCK PASS: keyboard focus scrolls the last row into view
+TUCK PASS: real Unicode title matches accent-insensitive search
+TUCK PASS: full long title is retained for accessibility
+TUCK PASS: closing a parked real window removes its record
+TUCK PASS: light appearance and enlarged text retain the shelf
+TUCK PASS: disable reveals owned window
+TUCK PASS: disable leaves ordinary minimized window alone
+TUCK PASS: disable removes panel indicator
+TUCK PASS: re-enable starts with a clean store
+TUCK NATIVE SUITE PASSED
