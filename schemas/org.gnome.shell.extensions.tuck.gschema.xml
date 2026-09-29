@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.tuck" path="/org/gnome/shell/extensions/tuck/">
+    <key name="park-window" type="as">
+      <default>['&lt;Super&gt;&lt;Control&gt;h']</default>
+      <summary>Park the focused window</summary>
+    </key>
+    <key name="open-shelf" type="as">
+      <default>['&lt;Super&gt;&lt;Control&gt;space']</default>
+      <summary>Open the window shelf</summary>
+    </key>
+    <key name="show-previews" type="b">
+      <default>true</default>
+      <summary>Show window thumbnails</summary>
+      <description>Thumbnails are compositor clones, held only while the shelf is open. Applications may pause drawing while minimized.</description>
+    </key>
+  </schema>
+</schemalist>
+
