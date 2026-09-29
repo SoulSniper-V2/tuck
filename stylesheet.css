@@ -1,0 +1,27 @@
+.tuck-shelf { padding: 8px 12px; spacing: 12px; }
+.tuck-header { spacing: 12px; padding: 0 4px 2px; }
+.tuck-heading { font-size: 19px; font-weight: bold; }
+.tuck-subtitle { font-size: 12px; opacity: 0.72; }
+.tuck-panel-count { font-size: 11px; font-weight: bold; }
+.tuck-icon-button { padding: 9px; border-radius: 10px; }
+.tuck-search { margin: 0; }
+.tuck-list { spacing: 4px; }
+.tuck-row { spacing: 4px; }
+.tuck-restore { border-radius: 12px; padding: 8px; text-align: left; }
+.tuck-restore:hover, .tuck-restore:focus { background-color: st-mix(-st-accent-color, transparent, 14%); }
+.tuck-restore:focus { box-shadow: inset 0 0 0 2px -st-accent-color; }
+.tuck-restore:active { background-color: st-mix(-st-accent-color, transparent, 24%); }
+.tuck-row-content { spacing: 14px; }
+.tuck-thumbnail { width: 120px; height: 76px; border-radius: 7px; background-color: rgba(127,127,127,0.12); }
+.tuck-app-icon { width: 44px; height: 76px; }
+.tuck-row-text { spacing: 4px; width: 188px; }
+.tuck-window-title { font-weight: bold; font-size: 13px; }
+.tuck-app-name { font-size: 12px; opacity: 0.8; }
+.tuck-workspace { font-size: 11px; opacity: 0.58; }
+.tuck-bring-here { margin: 26px 0; }
+.tuck-empty { spacing: 8px; padding: 22px 10px 26px; }
+.tuck-empty-icon { opacity: 0.5; margin-bottom: 4px; }
+.tuck-empty-title { font-weight: bold; text-align: center; }
+.tuck-empty .tuck-subtitle { text-align: center; }
+.tuck-footer { spacing: 8px; padding-top: 4px; }
+.tuck-park { font-weight: bold; padding: 10px 14px; border-radius: 10px; }
