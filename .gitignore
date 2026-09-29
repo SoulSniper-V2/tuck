@@ -3,3 +3,6 @@ dist/
 schemas/gschemas.compiled
 *.log
 
+
+/preferences-ready
+/screenshots/

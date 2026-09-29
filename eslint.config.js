@@ -3,6 +3,7 @@ import js from '@eslint/js';
 export default [
     {ignores: ['dist/**', 'node_modules/**']},
     js.configs.recommended,
+    {files: ['tests/nativePreferences.js'], languageOptions: {globals: {imports: 'readonly', TextDecoder: 'readonly'}}},
     {
         languageOptions: {
             ecmaVersion: 2025,
@@ -18,4 +19,3 @@ export default [
         },
     },
 ];
-

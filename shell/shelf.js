@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
@@ -38,6 +39,8 @@ class Shelf extends PanelMenu.Button {
         this._settings = settings;
         this._focusedWindow = null;
         this._filteredWindows = [];
+        this._rowControls = new Map();
+        this._focusSource = 0;
 
         const panelBox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         panelBox.add_child(new St.Icon({icon_name: 'view-restore-symbolic', style_class: 'system-status-icon'}));
@@ -81,12 +84,12 @@ class Shelf extends PanelMenu.Button {
                 return Clutter.EVENT_STOP;
             }
             if (symbol === Clutter.KEY_Down) {
-                this._list.navigate_focus(null, St.DirectionType.TAB_FORWARD, false);
+                this._rowControls.get(this._filteredWindows[0])?.restore.grab_key_focus();
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
         });
-        this._search.clutter_text.add_action(keys);
+        this._search.add_action_full('tuck-search-keys', Clutter.EventPhase.CAPTURE, keys);
 
         this._scroll = new St.ScrollView({
             style_class: 'tuck-scroll',
@@ -119,30 +122,46 @@ class Shelf extends PanelMenu.Button {
         footer.add_child(this._park);
         this._restoreAll = iconButton('edit-undo-symbolic', _('Restore all parked windows without switching workspaces'), () => {
             this.menu.close();
-            this._store.restoreAll();
+            try {
+                this._store.restoreAll();
+            } catch (error) {
+                console.error(`Tuck: ${error.message}`);
+                Main.notify(_('Tuck'), _('Some windows could not be restored. Try Overview or Alt-Tab.'));
+            }
         });
+        this._restoreAll.child = label(_('Restore all'), 'tuck-action-label');
         footer.add_child(this._restoreAll);
         this._section.actor.add_child(footer);
 
         global.display.connectObject('notify::focus-window', () => {
             const window = global.display.focus_window;
-            if (window)
+            if (window || !this.menu.isOpen)
                 this._setFocusedWindow(window);
         }, this);
+        global.stage.connectObject('notify::key-focus', () => this._revealFocusedRow(), this);
         this._settings.connectObject('changed::show-previews', () => this._render(), this);
         this.menu.connect('open-state-changed', (_menu, open) => {
             if (open) {
                 this._search.set_text('');
                 this._render();
-                this._search.grab_key_focus();
+                // PopupMenu maps its actor and starts key navigation after this signal.
+                this._focusSource = GLib.idle_add_once(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._focusSource = 0;
+                    if (this.menu.isOpen)
+                        this._search.grab_key_focus();
+                });
             } else {
+                this._cancelFocus();
+                this._setFocusedWindow(global.display.focus_window);
                 this._clearList();
             }
         });
 
         this._setFocusedWindow(global.display.focus_window);
         this.connect('destroy', () => {
+            this._cancelFocus();
             global.display.disconnectObject(this);
+            global.stage.disconnectObject(this);
             this._settings.disconnectObject(this);
             this._setFocusedWindow(null);
             this._store = null;
@@ -157,6 +176,26 @@ class Shelf extends PanelMenu.Button {
         this._focusedWindow = window;
         if (window)
             window.connectObject('unmanaged', () => this._setFocusedWindow(null), this);
+    }
+
+    _cancelFocus() {
+        if (this._focusSource)
+            GLib.Source.remove(this._focusSource);
+        this._focusSource = 0;
+    }
+
+    _revealFocusedRow() {
+        const focus = global.stage.get_key_focus();
+        if (!this.menu.isOpen || !focus?._tuckWindow)
+            return;
+        const box = focus.get_parent().get_allocation_box();
+        if (box.get_height() === 0)
+            return;
+        const adjustment = this._scroll.get_vadjustment();
+        if (box.y1 < adjustment.value)
+            adjustment.value = box.y1;
+        else if (box.y2 > adjustment.value + adjustment.page_size)
+            adjustment.value = box.y2 - adjustment.page_size;
     }
 
     sync() {
@@ -176,7 +215,7 @@ class Shelf extends PanelMenu.Button {
     }
 
     parkFocused() {
-        const window = global.display.focus_window ?? this._focusedWindow;
+        const window = this.menu.isOpen ? this._focusedWindow : global.display.focus_window;
         this.menu.close();
         try {
             if (!this._store.park(window))
@@ -200,9 +239,13 @@ class Shelf extends PanelMenu.Button {
     _clearList() {
         this._list.destroy_all_children();
         this._filteredWindows = [];
+        this._rowControls.clear();
     }
 
     _render() {
+        const focus = global.stage.get_key_focus();
+        const focusedWindow = focus?._tuckWindow;
+        const focusedAction = focus?._tuckAction;
         this._clearList();
         if (!this.menu.isOpen)
             return;
@@ -237,6 +280,13 @@ class Shelf extends PanelMenu.Button {
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         this._section.actor.style = `width: ${Math.min(408, monitor.width / scale - 40)}px;`;
         this._scroll.style = `max-height: ${Math.min(360, Math.max(120, monitor.height / scale - 280))}px;`;
+        if (focusedWindow) {
+            const controls = this._rowControls.get(focusedWindow);
+            if (controls)
+                controls[focusedAction].grab_key_focus();
+            else
+                this._search.grab_key_focus();
+        }
     }
 
     _row(window, app, appName, title) {
@@ -262,11 +312,17 @@ class Shelf extends PanelMenu.Button {
         text.add_child(label(location, 'tuck-workspace'));
         content.add_child(text);
         restore.child = content;
+        restore._tuckWindow = window;
+        restore._tuckAction = 'restore';
         restore.connect('clicked', () => this._restore(window, false));
         row.add_child(restore);
         const here = iconButton('go-jump-symbolic', _('Bring %s to this workspace').format(title), () => this._restore(window, true));
+        here.child = label(_('Bring here'), 'tuck-action-label');
         here.add_style_class_name('tuck-bring-here');
+        here._tuckWindow = window;
+        here._tuckAction = 'here';
         row.add_child(here);
+        this._rowControls.set(window, {restore, here});
         return row;
     }
 });

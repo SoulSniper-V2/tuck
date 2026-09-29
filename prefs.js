@@ -102,7 +102,11 @@ export default class TuckPreferences extends ExtensionPreferences {
             }
             const accelerator = Gtk.accelerator_name(keyLower, modifiers);
             const otherKey = key === 'park-window' ? 'open-shelf' : 'park-window';
-            if (settings.get_strv(otherKey).includes(accelerator)) {
+            const conflicts = settings.get_strv(otherKey).some(existing => {
+                const [valid, otherKeyval, otherModifiers] = Gtk.accelerator_parse(existing);
+                return valid && Gdk.keyval_to_lower(otherKeyval) === keyLower && otherModifiers === modifiers;
+            });
+            if (conflicts) {
                 dialog.body = _('The other Tuck action already uses this shortcut.');
                 return true;
             }
@@ -114,4 +118,3 @@ export default class TuckPreferences extends ExtensionPreferences {
         dialog.present(window);
     }
 }
-
