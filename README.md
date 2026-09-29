@@ -25,6 +25,8 @@ Thumbnails use compositor clones while the popup is open. Minimized applications
 
 ## Install on GNOME 51
 
+Download the ZIP from the [v0.1.0 prerelease](https://github.com/SoulSniper-V2/tuck/releases/tag/v0.1.0). This is an early version; feedback and issue reports are welcome.
+
 The initial supported version is **GNOME Shell 51**. Do not edit the version list to bypass compatibility checking.
 
 Install the packaged ZIP on the GNOME machine:
@@ -56,7 +58,7 @@ npm run pack
 
 The package is written to `dist/tuck@arushwadhawan.shell-extension.zip`. Its explicit file list excludes tests, documentation, npm dependencies, and development configuration.
 
-For native tests in an isolated GNOME 51 session, see [verification](docs/verification.md). Unit checks alone do not prove Shell integration. The GitHub Actions workflow is supplied as configuration; it has not run on a hosted repository.
+For native tests in an isolated GNOME 51 session, see [verification](docs/verification.md). Unit checks alone do not prove Shell integration. Hosted lint, unit, schema, and package checks are available in [GitHub Actions](https://github.com/SoulSniper-V2/tuck/actions). Native GNOME tests are recorded separately.
 
 ## Limitations
 
@@ -64,6 +66,6 @@ For native tests in an isolated GNOME 51 session, see [verification](docs/verifi
 - Only normal, minimizable application windows are eligible; dialogs and transient windows are excluded.
 - Restore uses the window's current workspace, including changes made after parking.
 - Other Shell versions, extension combinations, screen readers, and physical multi-monitor configurations require additional testing.
-- This local repository and package have not been submitted to extensions.gnome.org or posted to Reddit.
+- This prerelease has not been submitted to extensions.gnome.org.
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).

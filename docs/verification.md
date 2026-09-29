@@ -63,11 +63,13 @@ dbus-run-session -- gnome-shell-test-tool \
 
 A normal fully provisioned GNOME environment should retain its normal image sandbox. The private-filesystem setup used here is not required to install Tuck.
 
-## Package — PROVEN
+## Native-tested package — PROVEN
 
 Strict GSettings compilation succeeded. The ZIP's integrity and explicit allowlist were checked, and every packaged source file was compared with the delivered source. Runtime files only: six JavaScript modules, stylesheet, metadata, source and compiled settings schema, and license.
 
-ZIP SHA-256:
+The archive tested above predates the addition of the GitHub URL to metadata. Its runtime code is unchanged. The prerelease ZIP is rebuilt in GitHub Actions and has its own attached checksum.
+
+Native-tested ZIP SHA-256:
 
 ```text
 b882c950d9bf1ec7e2c7601509c9ee0605cb2fca77aac3c3331b9d8f79e520b0
@@ -77,4 +79,4 @@ b882c950d9bf1ec7e2c7601509c9ee0605cb2fca77aac3c3331b9d8f79e520b0
 
 GNOME versions other than 51, physical displays/GPU configurations, screen readers, touch input, translated layouts, extended real-application usage, and combinations with other extensions remain untested. Accessible names and keyboard behavior were checked; that is not a complete accessibility certification.
 
-The GitHub Actions workflow is configured, with pinned Actions revisions, but has not executed remotely. No public repository, Reddit post, or extensions.gnome.org submission exists for this work. Before public submission, create a real issue-tracker repository, set its URL in metadata, and repeat the package and runtime checks. Catalog review and future Reddit reception remain external, unproven outcomes.
+The public [repository](https://github.com/SoulSniper-V2/tuck) includes an issue tracker and a pinned [GitHub Actions workflow](https://github.com/SoulSniper-V2/tuck/actions) for lint, unit, schema, and packaging checks. Hosted results do not replace the native runtime evidence above. The early release targets GNOME 51 only. Submission to extensions.gnome.org and catalog review remain separate, unperformed actions.
