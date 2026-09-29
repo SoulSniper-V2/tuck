@@ -143,3 +143,19 @@ test('disable reveals only still-owned windows without moving or activating them
     assert.deepEqual(activated, []);
     assert.deepEqual(store.windows, []);
 });
+
+test('failed restore stays recoverable and cleanup continues past a failing window', () => {
+    const {store} = setup();
+    const broken = new Window();
+    const healthy = new Window();
+    store.park(broken);
+    store.park(healthy);
+    broken.unminimize = () => { throw new Error('restore failed'); };
+    assert.throws(() => store.restore(broken), /restore failed/);
+    assert.deepEqual(store.windows, [broken, healthy]);
+    assert.throws(() => store.destroy(), /restore failed/);
+    assert.equal(healthy.minimized, false);
+    assert.equal(broken.signals.size, 0);
+    assert.equal(healthy.signals.size, 0);
+    assert.deepEqual(store.windows, []);
+});

@@ -58,17 +58,27 @@ export class WindowStore {
         if (bringHere && !window.is_on_all_workspaces())
             window.change_workspace(workspace);
 
-        this._forget(window);
         window.unminimize();
+        if (window.minimized)
+            return false;
+        this._forget(window);
         this._activate(window);
         return true;
     }
 
     restoreAll() {
+        let failure = null;
         for (const window of this.windows) {
-            this._forget(window);
-            window.unminimize();
+            try {
+                window.unminimize();
+                if (!window.minimized)
+                    this._forget(window);
+            } catch (error) {
+                failure ??= error;
+            }
         }
+        if (failure)
+            throw failure;
     }
 
     _forget(window) {
@@ -84,9 +94,13 @@ export class WindowStore {
 
     destroy() {
         this._changed = () => {};
-        this.restoreAll();
-        this._activate = null;
-        this._currentWorkspace = null;
+        try {
+            this.restoreAll();
+        } finally {
+            for (const window of this.windows)
+                this._forget(window);
+            this._activate = null;
+            this._currentWorkspace = null;
+        }
     }
 }
-
