@@ -1,6 +1,6 @@
 {
   "name": "tuck-gnome-extension",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Development checks for the Tuck GNOME Shell extension",
@@ -16,4 +16,3 @@
     "eslint": "10.11.0"
   }
 }
-

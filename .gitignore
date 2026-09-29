@@ -6,3 +6,8 @@ schemas/gschemas.compiled
 
 /preferences-ready
 /screenshots/
+
+__pycache__/
+/tests/perf/
+/tests/classic-host/
+/tests/classicChecks.js

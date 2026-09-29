@@ -29,10 +29,12 @@ export default class TuckExtension extends Extension {
         Main.wm.removeKeybinding('open-shelf');
         Main.wm.removeKeybinding('park-window');
         try {
-            this._store?.destroy();
+            if (this._store)
+                this._store.destroy();
         } finally {
             this._store = null;
-            this._shelf?.destroy();
+            if (this._shelf)
+                this._shelf.destroy();
             this._shelf = null;
             this._settings = null;
         }

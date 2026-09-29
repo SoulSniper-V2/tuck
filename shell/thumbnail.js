@@ -4,11 +4,14 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import {fitPreview} from '../model.js';
+import {allocate, setAllocation} from './compat.js';
+import {SignalGroup} from './signals.js';
 
 export const Thumbnail = GObject.registerClass(
 class Thumbnail extends St.Widget {
     _init(window, fallbackIcon) {
         super._init({style_class: 'tuck-thumbnail', clip_to_allocation: true});
+        this._signals = new SignalGroup();
         this._source = window.get_compositor_private();
         this._fallback = fallbackIcon;
         this.add_child(this._fallback);
@@ -17,21 +20,19 @@ class Thumbnail extends St.Widget {
         if (this._source) {
             this._clone = new Clutter.Clone({source: this._source, reactive: false});
             this.add_child(this._clone);
-            this._source.connectObject(
-                'notify::width', () => this.queue_relayout(),
-                'notify::height', () => this.queue_relayout(),
-                'destroy', () => {
+            this._signals.connect(this._source, 'notify::width', () => this.queue_relayout());
+            this._signals.connect(this._source, 'notify::height', () => this.queue_relayout());
+            this._signals.connect(this._source, 'destroy', () => {
                     this._clearSource();
                     this.queue_relayout();
-                }, this);
+            });
         }
 
         this.connect('destroy', () => this._clearSource());
     }
 
     _clearSource() {
-        if (this._source)
-            this._source.disconnectObject(this);
+        this._signals.clear();
         this._source = null;
         if (this._clone)
             this._clone.destroy();
@@ -39,15 +40,15 @@ class Thumbnail extends St.Widget {
         this._fallback.show();
     }
 
-    vfunc_allocate(box) {
-        this.set_allocation(box);
+    vfunc_allocate(box, flags) {
+        setAllocation(this, box, flags);
         const width = box.get_width();
         const height = box.get_height();
         const fallbackBox = new Clutter.ActorBox({
             x1: (width - 32) / 2, y1: (height - 32) / 2,
             x2: (width + 32) / 2, y2: (height + 32) / 2,
         });
-        this._fallback.allocate(fallbackBox);
+        allocate(this._fallback, fallbackBox, flags);
 
         if (!this._clone)
             return;
@@ -60,9 +61,9 @@ class Thumbnail extends St.Widget {
         }
 
         this._clone.show();
-        this._clone.allocate(new Clutter.ActorBox({
+        allocate(this._clone, new Clutter.ActorBox({
             x1: (width - size.width) / 2, y1: (height - size.height) / 2,
             x2: (width + size.width) / 2, y2: (height + size.height) / 2,
-        }));
+        }), flags);
     }
 });

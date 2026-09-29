@@ -1,7 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import {legacyMarks} from './unicodeMarks.js';
+
+let marks;
+try {
+    marks = new RegExp('\\p{M}', 'gu');
+} catch {
+    marks = new RegExp(legacyMarks, 'gu');
+}
+
 function normalize(text) {
-    return String(text).normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
+    return String(text).normalize('NFKD').replace(marks, '').toLocaleLowerCase();
 }
 
 export function matchesQuery(title, appName, query) {

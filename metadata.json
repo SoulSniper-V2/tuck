@@ -3,9 +3,15 @@
   "name": "Tuck",
   "description": "Park a window for later. Find it in a searchable thumbnail shelf, then restore it where it was or bring it to your current workspace. Only windows you explicitly park are collected. No dock dependency, network access, or theme changes.",
   "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
     "51"
   ],
-  "version-name": "0.1.0",
+  "version-name": "0.2.0",
   "settings-schema": "org.gnome.shell.extensions.tuck",
   "gettext-domain": "tuck",
   "url": "https://github.com/SoulSniper-V2/tuck"

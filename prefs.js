@@ -6,6 +6,8 @@ import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import {parseAccelerator, shortcutDecision} from './shortcuts.js';
+
 export default class TuckPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
@@ -58,7 +60,7 @@ export default class TuckPreferences extends ExtensionPreferences {
         const sync = () => {
             const accelerator = settings.get_strv(key)[0];
             if (accelerator) {
-                const [, keyval, modifiers] = Gtk.accelerator_parse(accelerator);
+                const [, keyval, modifiers] = parseAccelerator(Gtk, accelerator);
                 button.set_label(Gtk.accelerator_get_label(keyval, modifiers));
             } else {
                 button.set_label(_('Disabled'));
@@ -78,43 +80,34 @@ export default class TuckPreferences extends ExtensionPreferences {
     }
 
     _capture(window, settings, key, title) {
-        const dialog = new Adw.AlertDialog({heading: title, body: _('Press a new shortcut')});
+        const dialog = Adw.AlertDialog
+            ? new Adw.AlertDialog({heading: title, body: _('Press a new shortcut')})
+            : new Adw.MessageDialog({transient_for: window, modal: true, heading: title, body: _('Press a new shortcut')});
         dialog.add_response('cancel', _('Cancel'));
         dialog.close_response = 'cancel';
         const controller = new Gtk.EventControllerKey();
         controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
         controller.connect('key-pressed', (_controller, keyval, _keycode, state) => {
-            const modifiers = state & Gtk.accelerator_get_default_mod_mask();
-            if (keyval === Gdk.KEY_Escape) {
-                dialog.close();
-                return true;
-            }
-            if (keyval === Gdk.KEY_BackSpace && modifiers === 0) {
-                settings.set_strv(key, []);
-                dialog.close();
-                return true;
-            }
-            const keyLower = Gdk.keyval_to_lower(keyval);
-            const meaningful = modifiers & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK | Gdk.ModifierType.SUPER_MASK);
-            if (!Gtk.accelerator_valid(keyLower, modifiers) || !meaningful) {
-                dialog.body = _('Include Ctrl, Alt, or Super with the key.');
-                return true;
-            }
-            const accelerator = Gtk.accelerator_name(keyLower, modifiers);
             const otherKey = key === 'park-window' ? 'open-shelf' : 'park-window';
-            const conflicts = settings.get_strv(otherKey).some(existing => {
-                const [valid, otherKeyval, otherModifiers] = Gtk.accelerator_parse(existing);
-                return valid && Gdk.keyval_to_lower(otherKeyval) === keyLower && otherModifiers === modifiers;
-            });
-            if (conflicts) {
-                dialog.body = _('The other Tuck action already uses this shortcut.');
+            const decision = shortcutDecision(Gtk, Gdk, keyval, state, settings.get_strv(otherKey));
+            if (decision.kind === 'invalid' || decision.kind === 'conflict') {
+                dialog.body = decision.kind === 'invalid'
+                    ? _('Include Ctrl, Alt, or Super with the key.')
+                    : _('The other Tuck action already uses this shortcut.');
                 return true;
             }
-            settings.set_strv(key, [accelerator]);
+            if (decision.kind === 'save')
+                settings.set_strv(key, [decision.accelerator]);
+            else if (decision.kind === 'clear')
+                settings.set_strv(key, []);
             dialog.close();
             return true;
         });
         dialog.add_controller(controller);
-        dialog.present(window);
+        if (Adw.AlertDialog)
+            dialog.present(window);
+        else
+            dialog.present();
+        return dialog;
     }
 }

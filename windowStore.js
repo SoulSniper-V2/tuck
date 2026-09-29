@@ -74,7 +74,8 @@ export class WindowStore {
                 if (!window.minimized)
                     this._forget(window);
             } catch (error) {
-                failure ??= error;
+                if (!failure)
+                    failure = error;
             }
         }
         if (failure)
