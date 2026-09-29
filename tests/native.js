@@ -51,7 +51,7 @@ export async function run() {
     await Scripting.sleep(1800);
     Main.overview.hide();
     await Scripting.sleep(500);
-    const extension = Extension.lookupByUUID('tuck@arushwadhawan');
+    const extension = Extension.lookupByUUID('tuck@tuck-extension');
     assert(extension !== null, 'packaged extension enabled in GNOME Shell');
     const shelf = extension._shelf;
     const store = extension._store;
@@ -189,7 +189,7 @@ export async function run() {
     extension.disable();
     assert(!windows[0].minimized, 'disable reveals owned window');
     assert(windows[1].minimized, 'disable leaves ordinary minimized window alone');
-    assert(Main.panel.statusArea['tuck@arushwadhawan'] === undefined, 'disable removes panel indicator');
+    assert(Main.panel.statusArea['tuck@tuck-extension'] === undefined, 'disable removes panel indicator');
     extension.enable();
     assert(extension._store.windows.length === 0, 're-enable starts with a clean store');
     extension.disable();

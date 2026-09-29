@@ -1,5 +1,5 @@
 {
-  "uuid": "tuck@arushwadhawan",
+  "uuid": "tuck@tuck-extension",
   "name": "Tuck",
   "description": "Park a window for later. Find it in a searchable thumbnail shelf, then restore it where it was or bring it to your current workspace. Only windows you explicitly park are collected. No dock dependency, network access, or theme changes.",
   "shell-version": [

@@ -57,7 +57,7 @@ dbus-run-session -- gnome-shell-test-tool \
   --headless --disable-animations \
   --extra-filter org.example.TuckPreferencesTest \
   --extra-filter org.example.TuckWindowTest \
-  --extension dist/tuck@arushwadhawan.shell-extension.zip \
+  --extension dist/tuck-v0.1.0.shell-extension.zip \
   /tmp/tuck/tests/native.js
 ```
 
@@ -67,7 +67,7 @@ A normal fully provisioned GNOME environment should retain its normal image sand
 
 Strict GSettings compilation succeeded. The ZIP's integrity and explicit allowlist were checked, and every packaged source file was compared with the delivered source. Runtime files only: six JavaScript modules, stylesheet, metadata, source and compiled settings schema, and license.
 
-The archive tested above predates the addition of the GitHub URL to metadata. Its runtime code is unchanged. The prerelease ZIP is rebuilt in GitHub Actions and has its own attached checksum.
+The archive tested above predates the public metadata URL, project-only extension ID, and friendly archive name. Its behavior implementation is unchanged. The updated identity and packaging are checked in GitHub Actions; the native suite was recorded with the earlier identity. The prerelease ZIP has its own attached checksum.
 
 Native-tested ZIP SHA-256:
 

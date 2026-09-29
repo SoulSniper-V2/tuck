@@ -8,6 +8,8 @@ import subprocess
 root = pathlib.Path(__file__).resolve().parent.parent
 metadata = json.loads((root / 'metadata.json').read_text())
 assert re.fullmatch(r'[\w.-]+@[\w.-]+', metadata['uuid'], re.ASCII)
+assert metadata['uuid'] == 'tuck@tuck-extension', 'Use the project namespace for the extension ID'
+assert re.fullmatch(r'\d+\.\d+\.\d+', metadata['version-name']), 'Use a stable versioned archive name'
 assert metadata['shell-version'] == ['51'], 'Only runtime-assessed versions belong in metadata'
 assert 'version' not in metadata, 'The catalog owns its numeric version'
 assert metadata['settings-schema'] == 'org.gnome.shell.extensions.tuck'

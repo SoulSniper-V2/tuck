@@ -19,7 +19,7 @@ if not compiler:
 
 destination = root / 'dist'
 destination.mkdir(exist_ok=True)
-archive = destination / f'{metadata["uuid"]}.shell-extension.zip'
+archive = destination / f'tuck-v{metadata["version-name"]}.shell-extension.zip'
 with tempfile.TemporaryDirectory() as temporary:
     stage = pathlib.Path(temporary)
     for name in files:

@@ -32,15 +32,17 @@ The initial supported version is **GNOME Shell 51**. Do not edit the version lis
 Install the packaged ZIP on the GNOME machine:
 
 ```sh
-gnome-extensions install --force tuck@arushwadhawan.shell-extension.zip
+gnome-extensions install --force tuck-v0.1.0.shell-extension.zip
 ```
 
 Log out and back in so Shell discovers the newly installed extension, then:
 
 ```sh
-gnome-extensions enable tuck@arushwadhawan
-gnome-extensions prefs tuck@arushwadhawan
+gnome-extensions enable tuck@tuck-extension
+gnome-extensions prefs tuck@tuck-extension
 ```
+
+If you installed an earlier build of this prerelease, disable and uninstall that copy in GNOME Extensions first: the extension ID has changed.
 
 You can also enable it through GNOME Extensions or Extension Manager. If a default shortcut is already in use, change it in Tuck's preferences. Preferences detect collisions between Tuck's own actions; they cannot comprehensively detect shortcuts registered by other extensions.
 
@@ -56,7 +58,7 @@ npm run check
 npm run pack
 ```
 
-The package is written to `dist/tuck@arushwadhawan.shell-extension.zip`. Its explicit file list excludes tests, documentation, npm dependencies, and development configuration.
+The package is written to `dist/tuck-v0.1.0.shell-extension.zip`. Its explicit file list excludes tests, documentation, npm dependencies, and development configuration.
 
 For native tests in an isolated GNOME 51 session, see [verification](docs/verification.md). Unit checks alone do not prove Shell integration. Hosted lint, unit, schema, and package checks are available in [GitHub Actions](https://github.com/SoulSniper-V2/tuck/actions). Native GNOME tests are recorded separately.
 
