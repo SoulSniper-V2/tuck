@@ -1,6 +1,6 @@
 # Verification record
 
-29 September 2026. Tuck v0.2.0 was tested on sixteen GNOME Shell generations, from 3.32 through 51. This record separates native behavior checks from static checks and hosted CI.
+29 September 2026. Tuck v0.3.0 was tested on sixteen GNOME Shell generations, from 3.32 through 51. This record separates native behavior checks from static checks and hosted CI.
 
 ## Local checks
 
@@ -35,10 +35,10 @@ Each row ran an actual GNOME Shell/Mutter compositor from official Fedora packag
 
 - Load the packaged extension and open an empty shelf.
 - Map nine real application windows; park and open the shelf with actual Mutter keyboard input.
-- Allocate compositor thumbnails, navigate into and through all nine entries, and scroll the last focused row into view.
-- Type search text, show no results, switch to icons, restore with Enter, and release thumbnail actors when the popup closes.
-- Restore externally, retain a window's workspace, move a window with Bring here, and restore all owned windows.
-- Load native preferences, change the preview setting, reject conflicting and unmodified shortcuts, save Ctrl/Super and Alt-only shortcuts, cancel, clear, and reset.
+- Allocate compositor thumbnails and readable title columns, browse windows with Up/Down, return to search with Ctrl+F, navigate through all nine entries, and scroll the last focused row into view.
+- Type search text, clear with Escape or the clear icon, show no results, switch to icons, restore with Enter, show focus tooltips, and release thumbnail actors and tooltip timers when the popup closes.
+- Restore externally, retain a window's workspace, move a window with actual Shift+Enter keyboard input, and restore all owned windows.
+- Load native preferences with native shortcut keycaps, change the preview setting, reject conflicting and unmodified shortcuts, save Ctrl/Super and Alt-only shortcuts, cancel, clear, and reset.
 - Disable and re-enable, reveal owned windows, preserve ordinary minimize, remove the indicator, and start with an empty store.
 
 Preferences used GTK 3 on 3.32–3.38, GTK 4 on 40–44, and GTK 4/libadwaita on 45–51. GNOME 45's libadwaita 1.4 `MessageDialog` fallback was exercised, as were newer `AlertDialog` versions. Each preferences process must exit successfully and write a unique per-run result file; an old marker cannot make a run pass.
@@ -47,9 +47,9 @@ The GTK 3 shortcut checks send native GDK test key events. Their fixture opts in
 
 ## Additional GNOME 51 checks
 
-The full suite also passed against GNOME Shell/Mutter 51.0, GJS 1.90.0, GTK 4.24.0, and libadwaita 1.10.0. [Native results](native-results.txt) record its assertions. It covers a Unicode long title and accessible name, closure of a parked document, focus after a title notification, and light appearance at text scale 1.25.
+The full suite also passed against GNOME Shell/Mutter 51.0, GJS 1.90.0, GTK 4.24.0, and libadwaita 1.10.0. [Native results](native-results.txt) record its assertions. It covers a Unicode long title and accessible name, a stable popup width with long titles, closure of a parked document, focus after a title notification, and light appearance at text scale 1.25.
 
-[Shell](screenshots/shelf.png), [scrolling](screenshots/many-windows.png), [Unicode search](screenshots/search-long-title.png), [light appearance](screenshots/light-large-text.png), and [preferences](screenshots/preferences.png) screenshots were refreshed from this run and inspected. Window content is test-fixture content.
+[Shell](screenshots/documents.png), [scrolling](screenshots/many-windows.png), [Unicode search](screenshots/search-long-title.png), [light appearance](screenshots/light-large-text.png), and [preferences](screenshots/preferences.png) screenshots were refreshed from this run and inspected. Window content is test-fixture content. The README uses a direct area capture of the same live popup.
 
 ## Reproduce the compatibility suite
 
@@ -91,7 +91,9 @@ SHELL_PERF_MODULE=compat gnome-shell --wayland --headless \
 
 For GNOME 3.32–3.38, prepare the matching classic fixture, unset `WAYLAND_DISPLAY`, and run `SHELL_PERF_MODULE=compat gnome-shell --x11` on a separate Xvfb display. Start `/usr/libexec/gnome-shell-perf-helper` in the same D-Bus session first. The preparation script handles the older generator-based performance harness and extracts the installed preferences host's resources.
 
-An isolated GNOME 51 launch stalled before the suite started; a fresh launch completed every assertion and exited normally. The isolated matrix lacked login/GDM, PolicyKit, and other full-session services, which produced warnings. Trusted fixture image loading used a disabled Glycin sandbox where the disposable environment could not provide one. That override is absent from Tuck and is not an installation requirement. A normal desktop should retain its normal image sandbox.
+The matrix passed 1,028 assertions across sixteen sessions. An additional GNOME 49 fixture checked popup bounds at 640×480 with text scale 1.5 (x=44, y=48, width=590, height=393) and retained all nine rows after changing the shelf to RTL. This was a layout check, not a translated-language or screen-reader test.
+
+Fast headless GNOME 50–51 sessions sometimes finished startup before Shell connected its automation handler. The test fixtures now invoke the standard performance runner when startup has already finished. No Shell source or Tuck runtime is patched for this workaround. The isolated matrix lacked login/GDM, PolicyKit, and other full-session services, which produced warnings. Trusted fixture image loading used a disabled Glycin sandbox where the disposable environment could not provide one. That override is absent from Tuck and is not an installation requirement. A normal desktop should retain its normal image sandbox.
 
 ## Package integrity and limits
 
@@ -99,8 +101,8 @@ The archives contain only ten JavaScript modules, metadata, stylesheet, source a
 
 | Release archive | Native-tested SHA-256 |
 | --- | --- |
-| `tuck-v0.2.0.shell-extension.zip` | `c8f113bd4b5fa517e9e1e9c72531f6d43f3a744c0697e4f395f4eb9d4b598f47` |
-| `tuck-v0.2.0-legacy.shell-extension.zip` | `d65d59c716f65791a37f353ba3ce9b34da6909c046bfdac51216093cac91b7f5` |
+| `tuck-v0.3.0.shell-extension.zip` | `e3b21fdc230a8e6c238860692195abca0451eb9719591aa507f07389801bc6ab` |
+| `tuck-v0.3.0-legacy.shell-extension.zip` | `31b371f7bfb3c11c573092ca3d6777b062088b34916d3d5e17df2031eeab7e4b` |
 
 GNOME 3.30 and earlier use an older panel contract that this implementation does not support. Physical GPU/multi-monitor configurations, screen readers, touch input, translated keyboard layouts, extended real-application usage, and combinations with other extensions remain untested. Passing these fixtures is not a complete accessibility certification or a guarantee for every distribution patch.
 

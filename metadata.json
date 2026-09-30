@@ -11,7 +11,7 @@
     "50",
     "51"
   ],
-  "version-name": "0.2.0",
+  "version-name": "0.3.0",
   "settings-schema": "org.gnome.shell.extensions.tuck",
   "gettext-domain": "tuck",
   "url": "https://github.com/SoulSniper-V2/tuck"

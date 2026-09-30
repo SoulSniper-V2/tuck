@@ -1,3 +1,6 @@
+GNOME Shell 51.0 native test run, Tuck v0.3.0, 29 September 2026, exit 0.
+TUCK native harness loaded
+TUCK native harness started
 TUCK PASS: packaged extension enabled in GNOME Shell
 TUCK PASS: empty shelf opens
 TUCK PASS: three real test windows mapped
@@ -45,6 +48,7 @@ TUCK PASS: Tab reaches the ninth window
 TUCK PASS: keyboard focus scrolls the last row into view
 TUCK PASS: real Unicode title matches accent-insensitive search
 TUCK PASS: full long title is retained for accessibility
+TUCK PASS: a long window title keeps the popup at its normal width
 TUCK PASS: closing a parked real window removes its record
 TUCK PASS: light appearance and enlarged text retain the shelf
 TUCK PASS: disable reveals owned window

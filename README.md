@@ -2,9 +2,11 @@
 
 A little room to focus. Park a window for later, then find it in a small shelf in the top panel.
 
+Keep a reference document, spare terminal, or paused task handy without closing it or setting up a dedicated workspace.
+
 Tuck collects only windows you explicitly park. Each entry shows a thumbnail, title, application, and workspace. Click the entry to restore it on its existing workspace, or choose **Bring here** to move it to your current one.
 
-![Tuck running in GNOME Shell 51](docs/screenshots/shelf.png)
+![Tuck running in GNOME Shell 51](docs/screenshots/documents-menu.png)
 
 ## Use
 
@@ -12,12 +14,14 @@ Tuck collects only windows you explicitly park. Each entry shows a thumbnail, ti
 | --- | --- |
 | Park the focused window | Super + Ctrl + H |
 | Open the shelf | Super + Ctrl + Space |
-| Restore the first search result | Enter |
-| Move from search into the results | Down |
+| Restore the first search result or selected window | Enter |
+| Bring the first result or selected window to this workspace | Shift + Enter |
+| Browse windows; return to search from the first row | Down / Up |
+| Focus search | Ctrl + F |
 | Navigate controls | Tab / Shift + Tab |
-| Dismiss the shelf | Escape |
+| Clear search, then dismiss the shelf | Escape |
 
-The panel menu also has **Park current window**, **Restore all**, and a preferences button. Preferences let you change or clear both shortcuts and turn thumbnails off.
+The panel menu also has **Park Window**, **Restore All**, and a preferences button. Preferences let you change or clear both shortcuts and turn thumbnails off.
 
 Normal minimizing, Overview, and Alt-Tab keep working. Restoring a parked window elsewhere removes it from Tuck. Closing an application removes its entry. Turning the extension off reveals its remaining parked windows without changing their workspaces or focusing them. No windows, titles, or screenshots are saved to disk.
 
@@ -25,12 +29,12 @@ Thumbnails use compositor clones while the popup is open. Minimized applications
 
 ## Install
 
-Download the matching ZIP from the [v0.2.0 prerelease](https://github.com/SoulSniper-V2/tuck/releases/tag/v0.2.0).
+Download the matching ZIP from the [v0.3.0 prerelease](https://github.com/SoulSniper-V2/tuck/releases/tag/v0.3.0).
 
 | GNOME Shell | Package |
 | --- | --- |
-| 45, 46, 47, 48, 49, 50, 51 | `tuck-v0.2.0.shell-extension.zip` |
-| 3.32, 3.34, 3.36, 3.38, 40, 41, 42, 43, 44 | `tuck-v0.2.0-legacy.shell-extension.zip` |
+| 45, 46, 47, 48, 49, 50, 51 | `tuck-v0.3.0.shell-extension.zip` |
+| 3.32, 3.34, 3.36, 3.38, 40, 41, 42, 43, 44 | `tuck-v0.3.0-legacy.shell-extension.zip` |
 
 Both packages use **tuck@tuck-extension** and preserve the same settings. The modern package uses ECMAScript modules; the legacy package uses GNOME's older loader. Use the matching package when upgrading across GNOME 44 → 45. GNOME 3.30 and earlier are unsupported.
 
@@ -38,7 +42,7 @@ Check your version with `gnome-shell --version`. On GNOME 3.34 or later:
 
 ```sh
 # Substitute the legacy ZIP on GNOME 3.34–44.
-gnome-extensions install --force tuck-v0.2.0.shell-extension.zip
+gnome-extensions install --force tuck-v0.3.0.shell-extension.zip
 ```
 
 Log out and back in so Shell discovers the installed extension, then:

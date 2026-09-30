@@ -1,23 +1,32 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "uuid": "tuck@tuck-extension",
   "date": "2026-09-29",
   "archives": {
-    "tuck-v0.2.0-legacy.shell-extension.zip": "d65d59c716f65791a37f353ba3ce9b34da6909c046bfdac51216093cac91b7f5",
-    "tuck-v0.2.0.shell-extension.zip": "c8f113bd4b5fa517e9e1e9c72531f6d43f3a744c0697e4f395f4eb9d4b598f47"
+    "tuck-v0.3.0-legacy.shell-extension.zip": "31b371f7bfb3c11c573092ca3d6777b062088b34916d3d5e17df2031eeab7e4b",
+    "tuck-v0.3.0.shell-extension.zip": "e3b21fdc230a8e6c238860692195abca0451eb9719591aa507f07389801bc6ab"
   },
   "coverage": [
-    "TUCK COMPAT PASS: Bring here moves window to active workspace",
+    "TUCK COMPAT PASS: Ctrl+F returns to search",
+    "TUCK COMPAT PASS: Down browses to next window",
     "TUCK COMPAT PASS: Down focuses first result",
     "TUCK COMPAT PASS: Enter restores first result",
+    "TUCK COMPAT PASS: Escape clears query before closing shelf",
     "TUCK COMPAT PASS: Escape closes popup",
+    "TUCK COMPAT PASS: Shift+Enter brings the selected window to the active workspace",
     "TUCK COMPAT PASS: Tab reaches ninth window",
+    "TUCK COMPAT PASS: Up browses to previous window",
+    "TUCK COMPAT PASS: Up from first window returns to search",
+    "TUCK COMPAT PASS: clear search control removes query",
+    "TUCK COMPAT PASS: closing popup cancels and hides tooltip",
     "TUCK COMPAT PASS: closing popup releases thumbnail actors",
     "TUCK COMPAT PASS: disable preserves ordinary minimize",
     "TUCK COMPAT PASS: disable removes indicator",
     "TUCK COMPAT PASS: disable restores owned windows",
+    "TUCK COMPAT PASS: empty query hides clear action",
     "TUCK COMPAT PASS: empty shelf opens",
     "TUCK COMPAT PASS: external restore releases ownership",
+    "TUCK COMPAT PASS: keyboard focus reveals secondary action tooltip",
     "TUCK COMPAT PASS: keyboard focus scrolls last row into view",
     "TUCK COMPAT PASS: native preferences and shortcut suite passed",
     "TUCK COMPAT PASS: nine real application windows mapped",
@@ -26,6 +35,7 @@
     "TUCK COMPAT PASS: packaged extension enabled",
     "TUCK COMPAT PASS: park shortcut receives real Mutter keyboard input",
     "TUCK COMPAT PASS: preview setting switches to icons",
+    "TUCK COMPAT PASS: query exposes clear search action",
     "TUCK COMPAT PASS: re-enable starts clean",
     "TUCK COMPAT PASS: real compositor thumbnail has allocation",
     "TUCK COMPAT PASS: restore all reveals every owned window",
@@ -35,6 +45,7 @@
     "TUCK COMPAT PASS: search receives keyboard typing",
     "TUCK COMPAT PASS: shelf shortcut opens popup",
     "TUCK COMPAT PASS: thumbnail row has visible allocation",
+    "TUCK COMPAT PASS: window title and details have readable allocation",
     "TUCK PREFS COMPAT PASS: Alt-only shortcut saved",
     "TUCK PREFS COMPAT PASS: Backspace clears shortcut",
     "TUCK PREFS COMPAT PASS: Escape preserves shortcut",
@@ -46,6 +57,7 @@
     "TUCK PREFS COMPAT PASS: preview switch disables thumbnails",
     "TUCK PREFS COMPAT PASS: preview switch enables thumbnails",
     "TUCK PREFS COMPAT PASS: reset restores defaults",
+    "TUCK PREFS COMPAT PASS: shortcuts use native keycap labels",
     "TUCK PREFS COMPAT PASS: unmodified typing rejected"
   ],
   "runs": [
@@ -57,8 +69,8 @@
         "mutter-3.32.2-4.fc30.x86_64",
         "gtk3-3.24.11-1.fc30.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 47,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 59,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -70,8 +82,8 @@
         "mutter-3.34.6-2.fc31.x86_64",
         "gtk3-3.24.13-2.fc31.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 47,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 59,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -83,8 +95,8 @@
         "mutter-3.36.9-1.fc32.x86_64",
         "gtk3-3.24.28-2.fc32.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 47,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 59,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -96,8 +108,8 @@
         "mutter-3.38.5-1.fc33.x86_64",
         "gtk3-3.24.29-1.fc33.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 47,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 59,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -109,8 +121,8 @@
         "mutter-40.9-1.fc34.x86_64",
         "gtk3-3.24.30-1.fc34.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -122,8 +134,8 @@
         "mutter-41.9-2.fc35.x86_64",
         "gtk3-3.24.34-1.fc35.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -135,8 +147,8 @@
         "mutter-42.9-1.fc36.x86_64",
         "gtk3-3.24.35-1.fc36.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -148,8 +160,8 @@
         "mutter-43.8-1.fc37.x86_64",
         "gtk3-3.24.38-1.fc37.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -161,8 +173,8 @@
         "mutter-44.9-1.fc38.x86_64",
         "gtk3-3.24.41-1.fc38.x86_64"
       ],
-      "archive": "tuck-v0.2.0-legacy.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0-legacy.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -174,8 +186,8 @@
         "mutter-45.7-1.fc39.x86_64",
         "gtk3-3.24.43-1.fc39.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -187,8 +199,8 @@
         "mutter-46.9-1.fc40.x86_64",
         "gtk3-3.24.43-1.fc40.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -200,8 +212,8 @@
         "mutter-47.10-1.fc41.x86_64",
         "gtk3-3.24.43-2.fc41.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -213,8 +225,8 @@
         "mutter-48.8-1.fc42.x86_64",
         "gtk3-3.24.52-1.fc42.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -226,8 +238,8 @@
         "mutter-49.7-1.fc43.x86_64",
         "gtk3-3.24.52-1.fc43.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -239,8 +251,8 @@
         "mutter-50.5-1.fc44.x86_64",
         "gtk3-3.24.52-2.fc44.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     },
@@ -252,8 +264,8 @@
         "mutter-51.0-1.fc45.x86_64",
         "gtk3-3.24.52-6.fc45.x86_64"
       ],
-      "archive": "tuck-v0.2.0.shell-extension.zip",
-      "assertions_passed": 54,
+      "archive": "tuck-v0.3.0.shell-extension.zip",
+      "assertions_passed": 66,
       "exit_code": 0,
       "suite": "passed"
     }

@@ -27,14 +27,25 @@ function assert(condition, message) {
     console.log(`TUCK PASS: ${message}`);
 }
 
-async function screenshot(name) {
+async function screenshot(name, actor = null) {
     const directory = GLib.getenv('TUCK_SCREENSHOT_DIR');
     if (!directory)
         return;
     GLib.mkdir_with_parents(directory, 0o755);
     const file = Gio.File.new_for_path(`${directory}/${name}.png`);
     const stream = file.replace(null, false, Gio.FileCreateFlags.NONE, null);
-    await new Shell.Screenshot().screenshot(false, stream);
+    const capture = new Shell.Screenshot();
+    if (actor) {
+        const [left, top] = actor.get_transformed_position();
+        const [width, height] = actor.get_transformed_size();
+        const x = Math.max(0, Math.floor(left) - 8);
+        const y = Math.max(0, Math.floor(top) - 8);
+        await capture.screenshot_area(x, y,
+            Math.min(global.screen_width - x, Math.ceil(width) + 16),
+            Math.min(global.screen_height - y, Math.ceil(height) + 16), stream);
+    } else {
+        await capture.screenshot(false, stream);
+    }
     stream.close(null);
 }
 
@@ -43,6 +54,13 @@ export function init() {
     const pointer = global.stage.context.get_backend().get_default_seat()
         .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
     pointer.notify_absolute_motion(GLib.get_monotonic_time(), 640, 360);
+    // The asynchronous module import can outlast a headless Shell startup.
+    if (Main.layoutManager._startingUp === false) {
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            Scripting.runPerfScript({run, METRICS});
+            return GLib.SOURCE_REMOVE;
+        });
+    }
 }
 
 export async function run() {
@@ -83,6 +101,7 @@ export async function run() {
     shelf.toggle();
     await Scripting.sleep(500);
     assert(shelf._list.get_n_children() === 3, 'shelf shows three entries');
+    const shelfWidth = shelf.menu.actor.get_transformed_size()[0];
     await screenshot('shelf');
     await press([Clutter.KEY_Down]);
     assert(global.stage.get_key_focus()?._tuckWindow === windows[0], 'Down moves from search to the first row');
@@ -163,6 +182,9 @@ export async function run() {
     const longWindow = shelf._filteredWindows[0];
     assert(shelf._rowControls.get(longWindow).restore.accessible_name.includes(longWindow.get_title()),
         'full long title is retained for accessibility');
+    await Scripting.sleep(150);
+    assert(shelf.menu.actor.get_transformed_size()[0] <= shelfWidth + 1,
+        'a long window title keeps the popup at its normal width');
     await screenshot('search-long-title');
     shelf.menu.close();
     longWindow.delete(global.get_current_time());
@@ -170,6 +192,13 @@ export async function run() {
     assert(store.windows.length === 8, 'closing a parked real window removes its record');
     store.restoreAll();
     const interfaceSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
+    for (const window of documents.filter(window => window !== longWindow).slice(0, 3))
+        store.park(window);
+    shelf.toggle();
+    await Scripting.sleep(300);
+    await screenshot('documents');
+    await screenshot('documents-menu', shelf.menu.actor);
+    shelf.menu.close();
     interfaceSettings.set_string('color-scheme', 'prefer-light');
     interfaceSettings.set_double('text-scaling-factor', 1.25);
     for (const window of documents.filter(window => window !== longWindow).slice(0, 3))
