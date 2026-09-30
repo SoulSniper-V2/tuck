@@ -35,6 +35,14 @@ function press(keyboard, keys) {
 export function init() {
     const pointer = virtualDevice(Clutter.InputDeviceType.POINTER_DEVICE);
     pointer.notify_absolute_motion(GLib.get_monotonic_time(), 640, 360);
+    // Shell imports automation modules asynchronously before connecting its
+    // startup-complete handler. A fast headless session can finish first.
+    if (Main.layoutManager._startingUp === false) {
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            Scripting.runPerfScript({run, METRICS});
+            return GLib.SOURCE_REMOVE;
+        });
+    }
 }
 
 export async function run() {
@@ -77,11 +85,31 @@ export async function run() {
     assert(shelf._list.get_n_children() === 9 && shelf._list.height > 0, 'scroll view allocates all nine rows');
     const first = shelf._rowControls.get(windows[0]).restore;
     assert(first.height > 0 && first.width > 0, 'thumbnail row has visible allocation');
+    assert(first.child.get_child_at_index(1).width > 50, 'window title and details have readable allocation');
     const thumbnail = first.child.get_first_child();
     assert(thumbnail._clone && thumbnail._clone.width > 0, 'real compositor thumbnail has allocation');
     press(keyboard, [Clutter.KEY_Down]);
     await Scripting.sleep(150);
     assert(global.stage.get_key_focus()._tuckWindow === windows[0], 'Down focuses first result');
+    press(keyboard, [Clutter.KEY_Down]);
+    await Scripting.sleep(100);
+    assert(global.stage.get_key_focus()._tuckWindow === windows[1], 'Down browses to next window');
+    press(keyboard, [Clutter.KEY_Up]);
+    await Scripting.sleep(100);
+    assert(global.stage.get_key_focus()._tuckWindow === windows[0], 'Up browses to previous window');
+    press(keyboard, [Clutter.KEY_Up]);
+    await Scripting.sleep(100);
+    assert(global.stage.get_key_focus() === shelf._search.clutter_text, 'Up from first window returns to search');
+    press(keyboard, [Clutter.KEY_Down]);
+    await Scripting.sleep(100);
+    shelf._rowControls.get(windows[0]).here.grab_key_focus();
+    await Scripting.sleep(550);
+    assert(shelf._tooltip.visible && shelf._tooltip.text === 'Bring Here', 'keyboard focus reveals secondary action tooltip');
+    press(keyboard, [Clutter.KEY_Control_L, Clutter.KEY_f]);
+    await Scripting.sleep(100);
+    assert(global.stage.get_key_focus() === shelf._search.clutter_text, 'Ctrl+F returns to search');
+    press(keyboard, [Clutter.KEY_Down]);
+    await Scripting.sleep(100);
     for (let i = 0; i < 16; i++) {
         press(keyboard, [Clutter.KEY_Tab]);
         await Scripting.sleep(50);
@@ -93,6 +121,14 @@ export async function run() {
     press(keyboard, [Clutter.KEY_n]);
     await Scripting.sleep(100);
     assert(shelf._search.get_text() === 'n', 'search receives keyboard typing');
+    assert(!!shelf._search.secondary_icon, 'query exposes clear search action');
+    press(keyboard, [Clutter.KEY_Escape]);
+    await Scripting.sleep(100);
+    assert(shelf.menu.isOpen && shelf._search.get_text() === '', 'Escape clears query before closing shelf');
+    assert(!shelf._search.secondary_icon, 'empty query hides clear action');
+    shelf._search.set_text('clear me');
+    shelf._search.emit('secondary-icon-clicked');
+    assert(shelf._search.get_text() === '', 'clear search control removes query');
     shelf._search.set_text('unmatchable-title-4829');
     assert(shelf._empty.visible && shelf._list.get_n_children() === 0, 'search no-results state');
     shelf._search.set_text('');
@@ -104,6 +140,7 @@ export async function run() {
     await Scripting.sleep(200);
     assert(!windows[0].minimized && !shelf.menu.isOpen, 'Enter restores first result');
     assert(shelf._list.get_n_children() === 0, 'closing popup releases thumbnail actors');
+    assert(!shelf._tooltip.visible && shelf._tooltipSource === 0, 'closing popup cancels and hides tooltip');
     windows[1].unminimize();
     assert(store.windows.length === 7, 'external restore releases ownership');
     const original = windows[2].get_workspace();
@@ -115,8 +152,13 @@ export async function run() {
     assert(windows[2].get_workspace() === original, 'restore preserves original workspace');
     target.activate(global.get_current_time());
     await Scripting.sleep(300);
-    store.restore(windows[3], true);
-    assert(windows[3].get_workspace() === target, 'Bring here moves window to active workspace');
+    shelf.toggle();
+    await Scripting.sleep(200);
+    shelf._rowControls.get(windows[3]).restore.grab_key_focus();
+    press(keyboard, [Clutter.KEY_Shift_L, Clutter.KEY_Return]);
+    await Scripting.sleep(150);
+    assert(windows[3].get_workspace() === target && !windows[3].minimized && !shelf.menu.isOpen,
+        'Shift+Enter brings the selected window to the active workspace');
     store.restoreAll();
     assert(windows.every(window => !window.minimized), 'restore all reveals every owned window');
     const path = GLib.get_user_data_dir() + '/gnome-shell/extensions/' + uuid;

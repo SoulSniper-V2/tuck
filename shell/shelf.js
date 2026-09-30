@@ -13,14 +13,16 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {matchesQuery} from '../model.js';
 import {Thumbnail} from './thumbnail.js';
-import {verticalBox, setScrollChild, verticalAdjustment, searchKeys, idleOnce} from './compat.js';
+import {verticalBox, setScrollChild, verticalAdjustment, searchKeys, menuKeys, idleOnce} from './compat.js';
 import {SignalGroup} from './signals.js';
 
 function iconButton(iconName, name, callback) {
     const button = new St.Button({
-        style_class: 'button tuck-icon-button',
+        style_class: 'button flat tuck-icon-button',
+        track_hover: true,
         accessible_name: name,
         can_focus: true,
+        y_align: Clutter.ActorAlign.CENTER,
         child: new St.Icon({icon_name: iconName, icon_size: 16}),
     });
     button.connect('clicked', callback);
@@ -44,6 +46,12 @@ class Shelf extends PanelMenu.Button {
         this._rowControls = new Map();
         this._focusSource = 0;
         this._signals = new SignalGroup();
+        this._tooltipSource = 0;
+        this._tooltipTarget = null;
+        this._tooltip = new St.Label({style_class: 'dash-label tuck-tooltip', visible: false});
+        this._tooltip.clutter_text.line_wrap = true;
+        this._tooltip.clutter_text.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
+        Main.uiGroup.add_child(this._tooltip);
 
         const panelBox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         panelBox.add_child(new St.Icon({icon_name: 'view-restore-symbolic', style_class: 'system-status-icon'}));
@@ -56,15 +64,17 @@ class Shelf extends PanelMenu.Button {
         this.menu.addMenuItem(this._section);
 
         const header = new St.BoxLayout({style_class: 'tuck-header'});
-        const heading = verticalBox({x_expand: true});
+        const heading = new St.BoxLayout({x_expand: true, style_class: 'tuck-title-box'});
         heading.add_child(label(_('Tuck'), 'tuck-heading'));
-        this._subtitle = label(_('A little room to focus'), 'tuck-subtitle');
+        this._subtitle = label('', 'tuck-count');
         heading.add_child(this._subtitle);
         header.add_child(heading);
-        header.add_child(iconButton('emblem-system-symbolic', _('Tuck preferences'), () => {
+        this._preferences = iconButton('emblem-system-symbolic', _('Preferences'), () => {
             this.menu.close();
             openPreferences();
-        }));
+        });
+        this._hint(this._preferences, _('Preferences'));
+        header.add_child(this._preferences);
         this._section.actor.add_child(header);
 
         this._search = new St.Entry({
@@ -76,7 +86,50 @@ class Shelf extends PanelMenu.Button {
             accessible_name: _('Find a parked window'),
         });
         this._section.actor.add_child(this._search);
-        this._search.clutter_text.connect('text-changed', () => this._render());
+        this._search.clutter_text.connect('text-changed', () => {
+            const query = this._search.get_text();
+            if (query && !this._search.secondary_icon)
+                this._search.set_secondary_icon(new St.Icon({icon_name: 'edit-clear-symbolic', icon_size: 16,
+                    accessible_name: _('Clear Search')}));
+            else if (!query)
+                this._search.set_secondary_icon(null);
+            this._render();
+        });
+        this._search.connect('secondary-icon-clicked', () => {
+            this._search.set_text('');
+            this._search.grab_key_focus();
+        });
+        this._menuKeysCleanup = menuKeys(this.menu, (symbol, modifiers) => {
+            const focus = global.stage.get_key_focus();
+            if ((symbol === Clutter.KEY_f || symbol === Clutter.KEY_F) && modifiers & Clutter.ModifierType.CONTROL_MASK) {
+                this._search.grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+            if (symbol === Clutter.KEY_Escape && this._search.get_text()) {
+                this._search.set_text('');
+                this._search.grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+            if ((symbol === Clutter.KEY_Return || symbol === Clutter.KEY_KP_Enter) && modifiers & Clutter.ModifierType.SHIFT_MASK) {
+                const window = focus._tuckWindow || (this._search.contains(focus) ? this._filteredWindows[0] : null);
+                if (window) {
+                    this._restore(window, true);
+                    return Clutter.EVENT_STOP;
+                }
+            }
+            if (focus && focus._tuckWindow && (symbol === Clutter.KEY_Up || symbol === Clutter.KEY_Down)) {
+                const index = this._filteredWindows.indexOf(focus._tuckWindow) + (symbol === Clutter.KEY_Down ? 1 : -1);
+                if (index < 0)
+                    this._search.grab_key_focus();
+                else {
+                    const controls = this._rowControls.get(this._filteredWindows[index]);
+                    if (controls)
+                        controls.restore.grab_key_focus();
+                }
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
 
         searchKeys(this._search, symbol => {
             if (symbol === Clutter.KEY_Return || symbol === Clutter.KEY_KP_Enter) {
@@ -104,7 +157,7 @@ class Shelf extends PanelMenu.Button {
         this._section.actor.add_child(this._scroll);
 
         this._empty = verticalBox({style_class: 'tuck-empty'});
-        this._empty.add_child(new St.Icon({icon_name: 'view-restore-symbolic', icon_size: 36, style_class: 'tuck-empty-icon'}));
+        this._empty.add_child(new St.Icon({icon_name: 'view-restore-symbolic', icon_size: 48, style_class: 'tuck-empty-icon'}));
         this._emptyTitle = label(_('Keep it for later'), 'tuck-empty-title');
         this._emptyHint = label(_('Park a window. Pick it up when you need it.'), 'tuck-subtitle');
         this._emptyHint.clutter_text.line_wrap = true;
@@ -116,13 +169,15 @@ class Shelf extends PanelMenu.Button {
         const footer = new St.BoxLayout({style_class: 'tuck-footer'});
         this._park = new St.Button({
             style_class: 'button tuck-park',
-            label: _('Park current window'),
+            label: _('Park Window'),
             can_focus: true,
             x_expand: true,
         });
         this._park.connect('clicked', () => this.parkFocused());
         footer.add_child(this._park);
-        this._restoreAll = iconButton('edit-undo-symbolic', _('Restore all parked windows without switching workspaces'), () => {
+        this._restoreAll = new St.Button({style_class: 'button tuck-restore-all', label: _('Restore All'), can_focus: true, x_expand: true});
+        this._restoreAll.accessible_name = _('Restore all parked windows without switching workspaces');
+        this._restoreAll.connect('clicked', () => {
             this.menu.close();
             try {
                 this._store.restoreAll();
@@ -131,16 +186,24 @@ class Shelf extends PanelMenu.Button {
                 Main.notify(_('Tuck'), _('Some windows could not be restored. Try Overview or Alt-Tab.'));
             }
         });
-        this._restoreAll.child = label(_('Restore all'), 'tuck-action-label');
         footer.add_child(this._restoreAll);
         this._section.actor.add_child(footer);
+        this._keyHint = label(_('Enter to restore · Shift+Enter to bring here'), 'tuck-key-hint');
+        this._section.actor.add_child(this._keyHint);
 
         this._signals.connect(global.display, 'notify::focus-window', () => {
             const window = global.display.focus_window;
             if (window || !this.menu.isOpen)
                 this._setFocusedWindow(window);
         });
-        this._signals.connect(global.stage, 'notify::key-focus', () => this._revealFocusedRow());
+        this._signals.connect(global.stage, 'notify::key-focus', () => {
+            this._revealFocusedRow();
+            const focus = global.stage.get_key_focus();
+            if (focus && focus._tuckHint)
+                this._showHint(focus);
+            else
+                this._hideHint();
+        });
         this._signals.connect(this._settings, 'changed::show-previews', () => this._render());
         this.menu.connect('open-state-changed', (_menu, open) => {
             if (open) {
@@ -154,6 +217,7 @@ class Shelf extends PanelMenu.Button {
                 });
             } else {
                 this._cancelFocus();
+                this._hideHint();
                 this._setFocusedWindow(global.display.focus_window);
                 this._clearList();
             }
@@ -161,13 +225,61 @@ class Shelf extends PanelMenu.Button {
 
         this._setFocusedWindow(global.display.focus_window);
         this.connect('destroy', () => {
+            this._menuKeysCleanup();
             this._cancelFocus();
+            this._hideHint();
             this._signals.clear();
+            this._tooltip.destroy();
             this._setFocusedWindow(null);
             this._store = null;
             this._settings = null;
         });
         this.sync();
+    }
+
+    _hint(button, text) {
+        button._tuckHint = text;
+        button.connect('notify::hover', () => {
+            if (button.hover)
+                this._showHint(button);
+            else if (this._tooltipTarget === button)
+                this._hideHint();
+        });
+        button.connect('destroy', () => {
+            if (this._tooltipTarget === button)
+                this._hideHint();
+        });
+    }
+
+    _showHint(button) {
+        this._hideHint();
+        if (!this.menu.isOpen)
+            return;
+        this._tooltipTarget = button;
+        this._tooltipSource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 450, () => {
+            this._tooltipSource = 0;
+            this._tooltip.set_size(-1, -1);
+            this._tooltip.text = button._tuckHint;
+            const monitor = Main.layoutManager.findMonitorForActor(button) || Main.layoutManager.primaryMonitor;
+            const [x, y] = button.get_transformed_position();
+            const [buttonWidth, buttonHeight] = button.get_transformed_size();
+            const width = Math.min(this._tooltip.get_preferred_width(-1)[1], monitor.width - 24, 420);
+            const height = this._tooltip.get_preferred_height(width)[1];
+            this._tooltip.set_size(width, height);
+            const left = Math.max(monitor.x + 12, Math.min(x + (buttonWidth - width) / 2, monitor.x + monitor.width - width - 12));
+            const top = y + buttonHeight + height + 8 > monitor.y + monitor.height ? y - height - 8 : y + buttonHeight + 8;
+            this._tooltip.set_position(left, Math.max(monitor.y + 8, top));
+            this._tooltip.show();
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    _hideHint() {
+        if (this._tooltipSource)
+            GLib.Source.remove(this._tooltipSource);
+        this._tooltipSource = 0;
+        this._tooltipTarget = null;
+        this._tooltip.hide();
     }
 
     _setFocusedWindow(window) {
@@ -203,9 +315,8 @@ class Shelf extends PanelMenu.Button {
         this._count.text = count > 0 ? `${count}` : '';
         this._count.visible = count > 0;
         this.accessible_name = ngettext('Tuck, %d parked window', 'Tuck, %d parked windows', count).format(count);
-        this._subtitle.text = count > 0
-            ? ngettext('%d window set aside', '%d windows set aside', count).format(count)
-            : _('A little room to focus');
+        this._subtitle.text = ngettext('%d parked', '%d parked', count).format(count);
+        this._subtitle.visible = count > 0;
         if (this.menu.isOpen)
             this._render();
     }
@@ -237,6 +348,7 @@ class Shelf extends PanelMenu.Button {
     }
 
     _clearList() {
+        this._hideHint();
         this._list.destroy_all_children();
         this._filteredWindows = [];
         this._rowControls.clear();
@@ -266,8 +378,10 @@ class Shelf extends PanelMenu.Button {
         const hasWindows = this._store.windows.length > 0;
         this._scroll.visible = count > 0;
         this._empty.visible = count === 0;
-        this._emptyTitle.text = hasWindows ? _('No matching windows') : _('Keep it for later');
-        this._emptyHint.text = hasWindows ? _('Try a title or an application name.') : _('Park a window. Pick it up when you need it.');
+        this._emptyTitle.text = hasWindows ? _('No Matching Windows') : _('No Parked Windows');
+        this._emptyHint.text = hasWindows ? _('Try another title or app name.') : _('Set a window aside and pick it up when you need it.');
+        this._empty.get_first_child().icon_name = hasWindows ? 'edit-find-symbolic' : 'view-restore-symbolic';
+        this._keyHint.visible = count > 0;
         this._restoreAll.reactive = hasWindows;
         this._restoreAll.can_focus = hasWindows;
         this._restoreAll.opacity = hasWindows ? 255 : 90;
@@ -276,10 +390,10 @@ class Shelf extends PanelMenu.Button {
         this._park.can_focus = canPark;
         this._park.opacity = canPark ? 255 : 110;
 
-        const monitor = Main.layoutManager.primaryMonitor;
+        const monitor = Main.layoutManager.findMonitorForActor(this) || Main.layoutManager.primaryMonitor;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        this._section.actor.style = `width: ${Math.min(408, monitor.width / scale - 40)}px;`;
-        this._scroll.style = `max-height: ${Math.min(360, Math.max(120, monitor.height / scale - 280))}px;`;
+        this._section.actor.style = `width: 28em; min-width: 0; max-width: ${Math.max(240, monitor.width / scale - 80)}px;`;
+        this._scroll.style = `max-height: ${Math.min(400, Math.max(120, monitor.height / scale - 240))}px;`;
         if (focusedWindow) {
             const controls = this._rowControls.get(focusedWindow);
             if (controls)
@@ -292,24 +406,24 @@ class Shelf extends PanelMenu.Button {
     _row(window, app, appName, title) {
         const row = new St.BoxLayout({style_class: 'tuck-row'});
         const restore = new St.Button({
-            style_class: 'tuck-restore', can_focus: true, x_expand: true,
+            style_class: 'popup-menu-item tuck-restore', track_hover: true, can_focus: true, x_expand: true,
             accessible_name: _('Restore %s').format(title),
         });
-        const content = new St.BoxLayout({style_class: 'tuck-row-content'});
+        const content = new St.BoxLayout({style_class: 'tuck-row-content', x_expand: true});
         const makeIcon = () => app ? app.create_icon_texture(32) : new St.Icon({icon_name: 'application-x-executable-symbolic', icon_size: 32});
         if (this._settings.get_boolean('show-previews'))
             content.add_child(new Thumbnail(window, makeIcon()));
         else
             content.add_child(new St.Bin({style_class: 'tuck-app-icon', child: makeIcon()}));
 
-        const text = verticalBox({style_class: 'tuck-row-text', x_expand: true});
+        const text = verticalBox({style_class: 'tuck-row-text', x_expand: true, y_align: Clutter.ActorAlign.CENTER});
         text.add_child(label(title, 'tuck-window-title'));
-        text.add_child(label(appName, 'tuck-app-name'));
         const workspace = window.get_workspace();
         const location = window.is_on_all_workspaces()
             ? _('All workspaces')
-            : _('Workspace %d').format(workspace.index() + 1);
-        text.add_child(label(location, 'tuck-workspace'));
+            : workspace ? _('Workspace %d').format(workspace.index() + 1) : _('Workspace unavailable');
+        text.add_child(label(_('%s · %s').format(appName, location), 'tuck-window-detail'));
+        this._hint(restore, title);
         content.add_child(text);
         restore.child = content;
         restore._tuckWindow = window;
@@ -317,7 +431,8 @@ class Shelf extends PanelMenu.Button {
         restore.connect('clicked', () => this._restore(window, false));
         row.add_child(restore);
         const here = iconButton('go-jump-symbolic', _('Bring %s to this workspace').format(title), () => this._restore(window, true));
-        here.child = label(_('Bring here'), 'tuck-action-label');
+        this._hint(here, _('Bring Here'));
+        here.y_align = Clutter.ActorAlign.CENTER;
         here.add_style_class_name('tuck-bring-here');
         here._tuckWindow = window;
         here._tuckAction = 'here';

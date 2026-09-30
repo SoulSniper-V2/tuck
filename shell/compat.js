@@ -27,15 +27,35 @@ export function verticalAdjustment(scroll) {
 export function searchKeys(entry, callback) {
     if (Clutter.KeyController) {
         const controller = new Clutter.KeyController();
-        controller.connect('key-press', () => callback(controller.get_key()[1]));
+        controller.connect('key-press', () => {
+            const [, pressed, latched, locked] = controller.get_state();
+            return callback(controller.get_key()[1], pressed | latched | locked);
+        });
         entry.add_action_full('tuck-search-keys', Clutter.EventPhase.CAPTURE, controller);
+        return () => entry.remove_action(controller);
     } else {
-        entry.connect('captured-event', (_actor, event) => {
+        const id = entry.connect('captured-event', (_actor, event) => {
             if (event.type() === Clutter.EventType.KEY_PRESS)
-                return callback(event.get_key_symbol());
+                return callback(event.get_key_symbol(), event.get_state());
             return Clutter.EVENT_PROPAGATE;
         });
+        return () => entry.disconnect(id);
     }
+}
+
+export function menuKeys(menu, callback) {
+    // Capture before the menu grab's Escape handler. Older Shell grabs at the
+    // stage; newer Shell starts the event path at the grabbed menu actor.
+    const actor = major < 42 ? global.stage : menu.actor;
+    const disconnect = searchKeys(actor, (symbol, modifiers) => {
+        const focus = global.stage.get_key_focus();
+        if (!menu.isOpen || !focus || !menu.actor.contains(focus))
+            return Clutter.EVENT_PROPAGATE;
+        return callback(symbol, modifiers);
+    });
+    // The menu owns its controllers/signals and is destroyed before the panel
+    // button. Only the stage outlives us and needs explicit disconnection.
+    return actor === global.stage ? disconnect : () => {};
 }
 
 export function idleOnce(callback) {

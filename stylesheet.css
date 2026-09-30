@@ -1,28 +1,28 @@
-.tuck-shelf { padding: 8px 12px; spacing: 12px; }
-.tuck-header { spacing: 12px; padding: 0 4px 2px; }
-.tuck-heading { font-size: 19px; font-weight: bold; }
-.tuck-subtitle { font-size: 12px; opacity: 0.72; }
-.tuck-panel-count { font-size: 11px; font-weight: bold; }
-.tuck-icon-button { padding: 9px; border-radius: 10px; }
+/* Shell provides the surface, text colors and interactive menu states. */
+.tuck-shelf { padding: 8px; spacing: 12px; }
+.tuck-header { spacing: 12px; padding: 0 4px; }
+.tuck-title-box { spacing: 10px; }
+.tuck-heading { font-size: 1.15em; font-weight: bold; }
+.tuck-count { font-size: 0.85em; opacity: 0.75; }
+.tuck-panel-count { font-size: 0.85em; font-weight: bold; }
+.tuck-icon-button { padding: 8px; border-radius: 999px; }
 .tuck-search { margin: 0; }
-.tuck-list { spacing: 4px; }
+.tuck-list { spacing: 2px; }
 .tuck-row { spacing: 4px; }
-.tuck-restore { border-radius: 12px; padding: 8px; text-align: left; }
-.tuck-restore:hover, .tuck-restore:focus { background-color: rgba(127,127,127,0.14); }
-.tuck-restore:focus { box-shadow: inset 0 0 0 2px rgba(127,127,127,0.8); }
-.tuck-restore:active { background-color: rgba(127,127,127,0.24); }
-.tuck-row-content { spacing: 14px; }
-.tuck-thumbnail { width: 112px; height: 76px; border-radius: 7px; background-color: rgba(127,127,127,0.12); }
-.tuck-app-icon { width: 44px; height: 76px; }
-.tuck-row-text { spacing: 4px; width: 164px; }
-.tuck-window-title { font-weight: bold; font-size: 13px; }
-.tuck-app-name { font-size: 12px; opacity: 0.8; }
-.tuck-workspace { font-size: 11px; opacity: 0.58; }
-.tuck-bring-here { margin: 26px 0; }
-.tuck-action-label { font-size: 11px; }
-.tuck-empty { spacing: 8px; padding: 22px 10px 26px; }
+.tuck-restore { padding: 8px; border-radius: 10px; text-align: left; }
+.tuck-row-content { spacing: 12px; }
+.tuck-thumbnail { width: 80px; height: 54px; border-radius: 6px; background-color: rgba(127,127,127,0.12); }
+.tuck-app-icon { width: 40px; height: 54px; }
+.tuck-row-text { spacing: 4px; min-width: 64px; max-width: 14em; }
+.tuck-window-title { font-weight: bold; }
+.tuck-window-detail { font-size: 0.85em; opacity: 0.75; }
+.tuck-bring-here { background-color: transparent; }
+.tuck-tooltip { font-size: 0.9em; }
+.tuck-empty { spacing: 10px; padding: 28px 16px; }
 .tuck-empty-icon { opacity: 0.5; margin-bottom: 4px; }
-.tuck-empty-title { font-weight: bold; text-align: center; }
+.tuck-empty-title { font-weight: bold; font-size: 1.15em; text-align: center; }
+.tuck-subtitle { font-size: 0.9em; opacity: 0.75; }
 .tuck-empty .tuck-subtitle { text-align: center; }
-.tuck-footer { spacing: 8px; padding-top: 4px; }
-.tuck-park { font-weight: bold; padding: 10px 14px; border-radius: 10px; }
+.tuck-footer { spacing: 8px; }
+.tuck-park, .tuck-restore-all { padding: 9px 12px; border-radius: 999px; }
+.tuck-key-hint { font-size: 0.85em; opacity: 0.65; text-align: center; }
