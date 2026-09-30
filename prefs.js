@@ -6,66 +6,64 @@ import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {parseAccelerator, shortcutDecision} from './shortcuts.js';
+import {shortcutDecision} from './shortcuts.js';
+
+const ShortcutLabel = 'ShortcutLabel' in Adw ? Adw.ShortcutLabel : Gtk.ShortcutLabel;
 
 export default class TuckPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
-        window.set_default_size(560, 570);
+        window.set_default_size(540, 480);
         const page = new Adw.PreferencesPage({title: _('Tuck'), icon_name: 'view-restore-symbolic'});
         window.add(page);
 
-        const introduction = new Adw.PreferencesGroup({
-            title: _('A little room to focus'),
-            description: _('Park a window for later. Restore it where it was, or bring it to the workspace you are using now.'),
-        });
-        page.add(introduction);
-
         const appearance = new Adw.PreferencesGroup({title: _('Shelf')});
         const previews = new Adw.SwitchRow({
-            title: _('Window thumbnails'),
-            subtitle: _('Shown only while the shelf is open. Minimized apps may pause drawing.'),
+            title: _('Window Previews'),
+            subtitle: _('Show window previews instead of app icons.'),
         });
         settings.bind('show-previews', previews, 'active', Gio.SettingsBindFlags.DEFAULT);
         appearance.add(previews);
         page.add(appearance);
 
         const shortcuts = new Adw.PreferencesGroup({
-            title: _('Keyboard shortcuts'),
-            description: _('Choose shortcuts that are not used by another extension. Backspace clears a shortcut; Escape cancels.'),
+            title: _('Keyboard Shortcuts'),
+            description: _('Select a shortcut to change it.'),
         });
-        this._shortcutRow(shortcuts, window, settings, 'park-window', _('Park current window'));
-        this._shortcutRow(shortcuts, window, settings, 'open-shelf', _('Open shelf'));
-        const reset = new Adw.ActionRow({title: _('Reset shortcuts')});
-        const resetButton = new Gtk.Button({label: _('Reset'), valign: Gtk.Align.CENTER});
+        this._shortcutRow(shortcuts, window, settings, 'park-window', _('Park Window'));
+        this._shortcutRow(shortcuts, window, settings, 'open-shelf', _('Open Shelf'));
+        const resetButton = new Gtk.Button({label: _('Reset'), valign: Gtk.Align.CENTER,
+            tooltip_text: _('Restore Default Shortcuts')});
+        resetButton.add_css_class('flat');
         resetButton.connect('clicked', () => {
             settings.reset('park-window');
             settings.reset('open-shelf');
         });
-        reset.add_suffix(resetButton);
-        shortcuts.add(reset);
+        shortcuts.header_suffix = resetButton;
+        const syncReset = () => {
+            resetButton.sensitive = ['park-window', 'open-shelf'].some(key =>
+                JSON.stringify(settings.get_strv(key)) !== JSON.stringify(settings.get_default_value(key).deep_unpack()));
+        };
+        syncReset();
+        const resetSignal = settings.connect('changed', syncReset);
+        window.connect('close-request', () => {
+            settings.disconnect(resetSignal);
+            return false;
+        });
         page.add(shortcuts);
 
-        const behavior = new Adw.PreferencesGroup({title: _('Your windows stay yours')});
-        behavior.add(new Adw.ActionRow({
-            title: _('Only explicitly parked windows are collected'),
-            subtitle: _('Normal minimize, Overview, and Alt-Tab keep working. Turning Tuck off reveals its parked windows without moving them.'),
+        page.add(new Adw.PreferencesGroup({
+            description: _('Parked windows return when Tuck is turned off. Parking lasts for this session only.'),
         }));
-        page.add(behavior);
     }
 
     _shortcutRow(group, window, settings, key, title) {
         const row = new Adw.ActionRow({title});
-        const button = new Gtk.Button({valign: Gtk.Align.CENTER});
-        const sync = () => {
-            const accelerator = settings.get_strv(key)[0];
-            if (accelerator) {
-                const [, keyval, modifiers] = parseAccelerator(Gtk, accelerator);
-                button.set_label(Gtk.accelerator_get_label(keyval, modifiers));
-            } else {
-                button.set_label(_('Disabled'));
-            }
-        };
+        const shortcut = new ShortcutLabel({disabled_text: _('Disabled')});
+        const button = new Gtk.Button({valign: Gtk.Align.CENTER, child: shortcut,
+            tooltip_text: _('Change Shortcut')});
+        button.add_css_class('flat');
+        const sync = () => shortcut.set_accelerator(settings.get_strv(key)[0] || '');
         sync();
         const signal = settings.connect(`changed::${key}`, sync);
         // Preferences rows can be destroyed by their parent without a JS destroy call.
@@ -81,8 +79,8 @@ export default class TuckPreferences extends ExtensionPreferences {
 
     _capture(window, settings, key, title) {
         const dialog = Adw.AlertDialog
-            ? new Adw.AlertDialog({heading: title, body: _('Press a new shortcut')})
-            : new Adw.MessageDialog({transient_for: window, modal: true, heading: title, body: _('Press a new shortcut')});
+            ? new Adw.AlertDialog({heading: title, body: _('Press a shortcut with Ctrl, Alt, or Super.\nBackspace disables it; Escape cancels.')})
+            : new Adw.MessageDialog({transient_for: window, modal: true, heading: title, body: _('Press a shortcut with Ctrl, Alt, or Super.\nBackspace disables it; Escape cancels.')});
         dialog.add_response('cancel', _('Cancel'));
         dialog.close_response = 'cancel';
         const controller = new Gtk.EventControllerKey();

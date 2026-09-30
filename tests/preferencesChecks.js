@@ -18,6 +18,7 @@ export function checkPreferences(Gtk, Gdk, settings, page, capture, walk, comple
     assert(!settings.get_boolean('show-previews'), 'preview switch disables thumbnails');
     previews.active = true;
     assert(settings.get_boolean('show-previews'), 'preview switch enables thumbnails');
+    assert(widgets.filter(widget => widget.constructor.name.includes('ShortcutLabel')).length === 2, 'shortcuts use native keycap labels');
     const modifiers = Gdk.ModifierType.SUPER_MASK | Gdk.ModifierType.CONTROL_MASK;
     const steps = [
         ['open-shelf', Gdk.KEY_h, modifiers, '<Super><Control>space', 'default collision rejected', true],

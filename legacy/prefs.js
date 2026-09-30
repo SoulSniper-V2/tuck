@@ -4,7 +4,7 @@ const {Gdk, Gio, Gtk} = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const _ = imports.gettext.domain('tuck').gettext;
-const {parseAccelerator, shortcutDecision} = Me.imports.shortcuts;
+const {shortcutDecision} = Me.imports.shortcuts;
 const gtk4 = Gtk.get_major_version() === 4;
 
 function init() {
@@ -20,33 +20,58 @@ function append(box, child) {
 
 function buildPrefsWidget() {
     const settings = ExtensionUtils.getSettings();
-    const page = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 18,
+    const page = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 24,
         margin_top: 24, margin_bottom: 24, margin_start: 24, margin_end: 24});
-    append(page, new Gtk.Label({label: _('Tuck — A little room to focus'), xalign: 0}));
-    append(page, new Gtk.Label({label: _('Park a window for later. Restore it where it was, or bring it here.'),
-        wrap: true, xalign: 0}));
-    const row = new Gtk.Box({spacing: 12});
-    append(row, new Gtk.Label({label: _('Window thumbnails'), hexpand: true, xalign: 0}));
+    const makeGroup = title => {
+        const group = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 12});
+        const heading = new Gtk.Label({label: title, xalign: 0});
+        heading.get_style_context().add_class('heading');
+        append(group, heading);
+        const list = new Gtk.ListBox({selection_mode: Gtk.SelectionMode.NONE});
+        list.get_style_context().add_class('boxed-list');
+        const frame = new Gtk.Frame({child: list});
+        append(group, frame);
+        append(page, group);
+        return list;
+    };
+    const addRow = (list, title, control) => {
+        const content = new Gtk.Box({spacing: 18, margin_top: 12, margin_bottom: 12, margin_start: 12, margin_end: 12});
+        append(content, new Gtk.Label({label: title, hexpand: true, xalign: 0}));
+        append(content, control);
+        const row = new Gtk.ListBoxRow({child: content, activatable: true});
+        if (gtk4)
+            list.append(row);
+        else
+            list.add(row);
+        return row;
+    };
+    const appearance = makeGroup(_('Shelf'));
     const previews = new Gtk.Switch({valign: Gtk.Align.CENTER});
     settings.bind('show-previews', previews, 'active', Gio.SettingsBindFlags.DEFAULT);
-    append(row, previews);
-    append(page, row);
-    append(page, new Gtk.Label({label: _('Include Ctrl, Alt, or Super. Backspace clears; Escape cancels.'), wrap: true, xalign: 0}));
+    const previewRow = addRow(appearance, _('Window Previews'), previews);
+    appearance.connect('row-activated', (_list, row) => {
+        if (row === previewRow)
+            previews.active = !previews.active;
+    });
+    const shortcuts = makeGroup(_('Keyboard Shortcuts'));
     const signals = [];
-    for (const [key, title] of [['park-window', _('Park current window')], ['open-shelf', _('Open shelf')]]) {
-        const line = new Gtk.Box({spacing: 12});
-        append(line, new Gtk.Label({label: title, hexpand: true, xalign: 0}));
-        const button = new Gtk.Button();
-        const sync = () => {
-            const accelerator = settings.get_strv(key)[0];
-            const [, keyval, modifiers] = parseAccelerator(Gtk, accelerator || '');
-            button.label = accelerator ? Gtk.accelerator_get_label(keyval, modifiers) : _('Disabled');
-        };
+    for (const [key, title] of [['park-window', _('Park Window')], ['open-shelf', _('Open Shelf')]]) {
+        const shortcut = new Gtk.ShortcutLabel({disabled_text: _('Disabled')});
+        const button = new Gtk.Button({valign: Gtk.Align.CENTER, tooltip_text: _('Change Shortcut')});
+        if (gtk4)
+            button.set_child(shortcut);
+        else
+            button.add(shortcut);
+        button.get_style_context().add_class('flat');
+        const sync = () => shortcut.set_accelerator(settings.get_strv(key)[0] || '');
         sync();
         signals.push(settings.connect(`changed::${key}`, sync));
+        const row = addRow(shortcuts, title, button);
         button.connect('clicked', () => capture(page, settings, key, title));
-        append(line, button);
-        append(page, line);
+        shortcuts.connect('row-activated', (_list, activated) => {
+            if (activated === row)
+                capture(page, settings, key, title);
+        });
     }
     const reset = new Gtk.Button({label: _('Reset shortcuts')});
     reset.connect('clicked', () => {
@@ -54,7 +79,7 @@ function buildPrefsWidget() {
         settings.reset('open-shelf');
     });
     append(page, reset);
-    append(page, new Gtk.Label({label: _('Turning Tuck off reveals its parked windows. Normal minimize stays untouched.'),
+    append(page, new Gtk.Label({label: _('Parked windows return when Tuck is turned off. Parking lasts for this session only.'),
         wrap: true, xalign: 0}));
     page.connect('unrealize', () => {
         for (const signal of signals.splice(0))
@@ -70,7 +95,7 @@ function capture(page, settings, key, title) {
     const dialog = new Gtk.Dialog({title, transient_for: window, modal: true, destroy_with_parent: true});
     dialog.add_button(_('Cancel'), Gtk.ResponseType.CANCEL);
     dialog.connect('response', () => dialog.destroy());
-    const prompt = new Gtk.Label({label: _('Press a new shortcut'), margin_top: 24, margin_bottom: 24,
+    const prompt = new Gtk.Label({label: _('Press a shortcut with Ctrl, Alt, or Super.\nBackspace disables it; Escape cancels.'), wrap: true, margin_top: 24, margin_bottom: 24,
         margin_start: 24, margin_end: 24});
     append(dialog.get_content_area(), prompt);
     const accept = (keyval, state) => {

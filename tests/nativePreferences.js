@@ -25,7 +25,10 @@ function assert(condition, message) {
 }
 
 function sleep(milliseconds) {
-    return new Promise(resolve => GLib.timeout_add_once(GLib.PRIORITY_DEFAULT, milliseconds, resolve));
+    return new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, milliseconds, () => {
+        resolve();
+        return GLib.SOURCE_REMOVE;
+    }));
 }
 
 function descendants(widget) {
@@ -88,7 +91,10 @@ application.connect('activate', () => {
             assert(settings.get_strv('park-window')[0] === '<Super><Control>h', 'reset restores default shortcut');
             console.log('TUCK PREFERENCES SUITE PASSED');
             GLib.file_set_contents('/tmp/tuck/preferences-ready', 'passed');
-            GLib.timeout_add_once(GLib.PRIORITY_DEFAULT, 1800, () => window.close());
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1800, () => {
+                window.close();
+                return GLib.SOURCE_REMOVE;
+            });
         } catch (error) {
             console.error(error.stack);
             failed = true;
